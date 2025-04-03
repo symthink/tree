@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  
+  .sources-border {
+    border-top: 1px solid var(--ion-color-step-200);
+    margin: 16px 16px;
+    position: relative;
+    
+    div {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      background: var(--ion-background-color);
+      padding: 0 10px;
+      transform: translateX(-50%);
+      font-size: 1.2em;
+    }
+  }
+}

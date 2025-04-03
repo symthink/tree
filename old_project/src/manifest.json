@@ -1,0 +1,17 @@
+{
+  "name": "symthink",
+  "short_name": "symthink",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [{
+    "src": "assets-i2d/icon/icon192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  },{
+    "src": "assets-i2d/icon/icon512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }],
+  "background_color": "#488aff",
+  "theme_color": "#488aff"
+}

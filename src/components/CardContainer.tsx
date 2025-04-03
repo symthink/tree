@@ -4,11 +4,12 @@ import { useTheme } from '../theme/ThemeContext';
 import { CardItem } from './CardItem';
 import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
+import { Subject } from 'rxjs';
 
 interface CardContainerProps {
   data: any; // Replace with proper type when migrating core classes
   canEdit?: boolean;
-  notify?: any; // Replace with proper type
+  notify?: Subject<string>;
   domrect?: DOMRect;
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
   onDocAction?: (action: { action: string; value: any }) => void;
@@ -216,7 +217,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
       padding: 16,
     },
     item: {
-      marginBottom: 8,
+      // marginBottom: 8,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border,

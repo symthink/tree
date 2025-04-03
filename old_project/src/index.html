@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+  <title>i2d</title>
+
+  <script type="module" src="/build/i2d.esm.js"></script>
+  <script nomodule src="/build/i2d.js"></script>
+  <script>
+    // Test data structure to debug support list component
+    const testData = {
+      "$chemaver": 1,
+      "id": "fnzm9d9",
+      "uid": "memory",
+      "text": "Who am I?",
+      "type": "QUE",
+      "format": 1,
+      "orphans": [],
+      "label": "Thomas W. Ford",
+      "numeric": true,
+      "support": [
+        {
+          "id": "ieps5u13",
+          "label": "KnSQs",
+          "text": "KSAs: Both labels",
+          "type": "QUE",
+          "support": []
+        },
+        {
+          "id": "ieps5u23",
+          "text": "Goals: Inline label",
+          "type": "QUE",
+          "support": []
+        },
+        {
+          "id": "ieps5u33",
+          "label": "Vals",
+          "text": "External label",
+          "type": "QUE",
+          "support": []
+        },
+        {
+          "id": "ieps5u43",
+          "text": "Platform: What do I stand for?",
+          "type": "QUE",
+          "support": []
+        },
+        {
+          "id": "iepsdfg3",
+          "text": "Stories: What are my stories?",
+          "type": "QUE",
+          "support": []
+        }
+      ]
+    };
+
+    window.onload = function() {
+      const container = document.querySelector('d2-card-container');
+      const supportList = document.querySelector('d2-support-list');
+      const i2dModule = '/build/i2d.esm.js';
+      
+      import(i2dModule).then(module => {
+        // Log the available exports
+        console.log('Module exports:', Object.keys(module));
+        
+        // Create a new SymThink instance
+        if (module.SymThink) {
+          const SymThinkClass = module.SymThink;
+          const SymThinkDocClass = module.SymThinkDocument;
+          
+          // Create a direct SymThink instance
+          const symthink = new SymThinkClass(testData.id);
+          console.log('SymThink before apply:', symthink);
+          symthink.apply(testData);
+          console.log('SymThink after apply:', symthink);
+          console.log('Support array:', symthink.support);
+          console.log('hasKids():', symthink.hasKids());
+          
+          // Create a SymThinkDocument instance
+          if (SymThinkDocClass) {
+            const symDoc = new SymThinkDocClass(testData.id);
+            console.log('SymThinkDocument before load:', symDoc);
+            symDoc.load(testData);
+            console.log('SymThinkDocument after load:', symDoc);
+            console.log('SymThinkDocument support array:', symDoc.support);
+            console.log('SymThinkDocument hasKids():', symDoc.hasKids());
+            
+            // Use the SymThinkDocument for the container
+            container.data = symDoc;
+            container.canEdit = true;
+          } else {
+            console.error('SymThinkDocument class not found in module');
+            container.data = symthink;
+            container.canEdit = true;
+          }
+          
+          // Use the direct SymThink instance for the support list
+          supportList.data = symthink;
+          supportList.canEdit = true;
+        } else {
+          console.error('SymThink class not found in module');
+        }
+      });
+    };
+  </script>
+</head>
+
+<body>
+  <h1>i2d Test Page</h1>
+  
+  <h2>Card Container Test</h2>
+  <!-- Include all components for Stencil to find -->
+  <d2-card-container></d2-card-container>
+  
+  <h2>Direct Support List Test</h2>
+  <d2-support-list></d2-support-list>
+  
+  <!-- Include all other components -->
+  <d2-card-item></d2-card-item>
+  <d2-expand-button></d2-expand-button>
+  <d2-item-icon></d2-item-icon>
+  <d2-item-options></d2-item-options>
+  <d2-sources-list></d2-sources-list>
+  <d2-support-item></d2-support-item>
+  <d2-text-editor></d2-text-editor>
+</body>
+
+</html>

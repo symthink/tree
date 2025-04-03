@@ -1,11 +1,13 @@
 // Setup React Native Web
 import './setupReactNative';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
 import { CardContainer } from '../../src/components/CardContainer';
-import { createMockData, SymThinkDocument } from './mockData';
+import { createMockData } from './mockData';
+import { SymthinkDocument } from '../../src/core/symthink';
+import { Subject } from 'rxjs';
 
 // User Agent display component
 const UserAgentInfo = () => {
@@ -17,9 +19,17 @@ const UserAgentInfo = () => {
 };
 
 const App = () => {
-  const [mockData] = useState<SymThinkDocument>(createMockData());
+  const [mockData] = useState<SymthinkDocument>(createMockData());
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const notifyRef = useRef<Subject<string>>(new Subject<string>());
   
+  useEffect(() => {
+    // Cleanup function to complete and unsubscribe from the Subject
+    return () => {
+      notifyRef.current.complete();
+    };
+  }, []);
+
   const handleItemAction = (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => {
     console.log('Item action:', action);
     if (action.action === 'support-clicked') {
@@ -55,6 +65,7 @@ const App = () => {
             <CardContainer 
               data={selectedItem || mockData} 
               canEdit={true}
+              notify={notifyRef.current}
               onItemAction={handleItemAction}
               onDocAction={handleDocAction}
             />

@@ -1,0 +1,154 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "Symthink": {
+        "$ref": "#/definitions/Symthink",
+        "description": "The main Symthink object containing the question, claim, or idea."
+      }
+    },
+    "required": [
+      "Symthink"
+    ],
+    "description": "SymthinkDocument containing the main Symthink object.",
+    "additionalProperties": false,
+    "definitions": {
+      "SymthinkType": {
+        "type": "string",
+        "enum": [
+          "QUE",
+          "CLM",
+          "IDA"
+        ],
+        "description": "Type of Symthink: Question (QUE), Claim (CLM), or Idea (IDA).",
+        "additionalProperties": false
+      },
+      "Author": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "type": "string",
+            "description": "The family name of the author."
+          },
+          "given": {
+            "type": "string",
+            "description": "The given name of the author."
+          }
+        },
+        "required": [
+          "family"
+        ],
+        "description": "An author object with family and optional given name."
+      },
+      "Issued": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date-parts": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            },
+            "description": "Date in year, month, day format."
+          }
+        },
+        "required": [
+          "date-parts"
+        ],
+        "description": "The issued date in the form of a date-parts array."
+      },
+      "CitationStyleLang": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type of citation source (e.g., 'article', 'book')."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the source."
+          },
+          "author": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Author"
+            },
+            "description": "Array of authors for the source."
+          },
+          "issued": {
+            "$ref": "#/definitions/Issued",
+            "description": "Issued date for the source."
+          },
+          "container-title": {
+            "type": "string",
+            "description": "The title of the container in which the source was published."
+          },
+          "publisher": {
+            "type": "string",
+            "description": "Publisher of the source."
+          },
+          "URL": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the source."
+          },
+          "source": {
+            "type": "string",
+            "description": "Source of the citation."
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "issued",
+          "URL"
+        ],
+        "description": "Citation style object containing source metadata."
+      },
+      "Symthink": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "$ref": "#/definitions/SymthinkType",
+            "description": "Type of Symthink: Question (QUE), Claim (CLM), or Idea (IDA)."
+          },
+          "text": {
+            "type": "string",
+            "description": "The main text of the question, claim, or idea."
+          },
+          "label": {
+            "type": "string",
+            "description": "A short label representing the gist or topic of the text."
+          },
+          "support": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Symthink"
+            },
+            "description": "Optional array of supporting Symthink objects."
+          },
+          "source": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/CitationStyleLang"
+            },
+            "description": "Optional array of citation sources."
+          }
+        },
+        "required": [
+          "type",
+          "text",
+          "label"
+        ],
+        "description": "Symthink object representing a question, claim, or idea with optional support and sources."
+      }
+    }
+  }

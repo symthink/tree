@@ -1,0 +1,209 @@
+:host {
+  display: block;
+  height: 100%;
+  font-family: var(--ion-font-family);
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  font-weight: var(--font-weight, 300);
+  letter-spacing: var(--letter-spacing, normal);
+  --fab-visibility: var(--visibility);
+  --ion-item-background: var(--ion-background-color);
+}
+
+// maybe deprecated if no slider opts
+[color=secondary] {
+  background-color: var(--ion-color-secondary);
+  color: var(--ion-color-secondary-contrast);
+}
+
+[color=primary] {
+  background-color: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+[color=tertiary] {
+  background-color: var(--ion-color-tertiary);
+  color: var(--ion-color-tertiary-contrast);
+}
+
+[color=danger] {
+  background-color: var(--ion-color-danger);
+  color: var(--ion-color-danger-contrast);
+}
+
+[color=warn] {
+  background-color: var(--ion-color-warning);
+  color: var(--ion-color-warning-contrast);
+}
+
+[color=medium] {
+  background-color: var(--ion-color-medium);
+  color: var(--ion-color-medium-contrast);
+}
+
+ion-fab-button[color=primary] {
+  --ion-color-base: #cec8c8 !important;
+  color: black;
+}
+
+ion-badge {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+d2-icon {
+  margin-inline: 0px 0px;
+  align-self: flex-start;
+}
+
+// must revert effect of above for conclusion which sits inside of ion-reorder-group tag
+ion-item.item-concl {
+  margin-left: -10px;
+}
+
+@media only screen and (min-width: 600px) {
+  ion-item.item-concl {
+    margin-left: -16px;
+  }
+}
+
+ion-item {
+  --inner-padding-end: 0px;
+}
+
+ion-item.item-text {
+  align-items: flex-start;
+  --padding-top: 5px;
+  --padding-end: 0px;
+  --padding-bottom: 0px;
+
+  ion-textarea {
+    --padding-top: 0px;
+  }
+
+  ion-label {
+    margin: 0px 8px 0px 0px;
+    height: auto;
+  }
+}
+
+// fix for ionic fixed size on wrap
+ion-label.ion-text-wrap {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+ion-textarea {
+  textarea {
+    line-height: inherit;
+    height: auto;
+    min-height: 65px;
+  }
+}
+
+.secondary-btn-theme {
+  --color: black;
+  --background: linear-gradient(to bottom, #aeaeae, #d4d4d6);
+}
+
+.secondary-theme {
+  color: black;
+  background: linear-gradient(to bottom, #aeaeae, #d4d4d6);
+}
+
+.dark {
+  .secondary-btn-theme {
+    --color: white;
+    --background: linear-gradient(to bottom, #474747, #171717);
+  }
+
+  .secondary-theme {
+    color: white;
+    background: linear-gradient(to bottom, #474747, #171717);
+  }
+}
+
+.placeholder {
+  font-weight: bold;
+  font-style: italic;
+  color: var(--ion-color-step-400) !important;
+}
+
+.hidden {
+  display: none;
+}
+
+.selected {
+  border-bottom: 0.5px dashed #919191;
+}
+
+.selected textarea {
+  caret-color: currentColor !important;
+}
+
+.animatable {
+  position: absolute;
+  z-index: 10000;
+}
+
+.line-clamp {
+  white-space: unset !important;
+}
+
+.sym-text * {
+  font-family: var(--ion-font-family);
+  font-size: var(--font-size, 1.125rem);
+  line-height: 1.5rem;
+  font-weight: var(--font-weight, 300);
+  letter-spacing: var(--letter-spacing, normal);
+}
+
+ion-fab-button {
+  visibility: var(--fab-visibility);
+}
+
+ion-icon[name=checkmark-outline] {
+  --ionicon-stroke-width: 64px;
+}
+
+ion-checkbox[hidden] {
+  display: none;
+}
+
+.back-arrow {
+  font-size: 1.5em;
+  color: var(--ion-color-step-600);
+  padding: 0 16px;
+}
+
+.sources-border {
+  border-top: 1px solid var(--ion-color-step-200);
+  margin: 16px 16px;
+  position: relative;
+  
+  div {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    background: var(--ion-background-color);
+    padding: 0 10px;
+    transform: translateX(-50%);
+    font-size: 1.2em;
+  }
+}
+
+.item-subscript {
+  font-size: 0.8em;
+  color: var(--ion-color-step-600);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.vote-break {
+  border-bottom: 2px solid var(--ion-color-primary);
+}
+
+.in-favor {
+  background-color: var(--ion-color-primary-tint);
+} 

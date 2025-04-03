@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  
+  ion-reorder-group {
+    width: 100%;
+  }
+  
+  ion-reorder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    opacity: 0.3;
+  }
+}
