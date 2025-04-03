@@ -211,7 +211,8 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: colors.background || '#ffffff',
+      minHeight: 300, // Ensure the container has a minimum height
     },
     content: {
       padding: 16,
