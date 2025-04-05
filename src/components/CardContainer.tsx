@@ -5,6 +5,7 @@ import { CardItem } from './CardItem';
 import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
 import { Subject } from 'rxjs';
+import { StateEnum } from '../core/symthink.class';
 
 interface CardContainerProps {
   data: any; // Replace with proper type when migrating core classes
@@ -66,12 +67,14 @@ export const CardContainer: React.FC<CardContainerProps> = ({
       
       setSourceList(data.getShowableSources());
       
-      logSubscription = data.getRoot().log$.subscribe((a: { action: string, ts: number }) => {
-        if (a.action === 'ADD_SOURCE') {
-          setSourceList(data.getShowableSources());
-          setChange(prev => !prev);
-        }
-      });
+      if (data.getRoot().log$) {  
+        logSubscription = data.getRoot().log$.subscribe((a: { action: string, ts: number }) => {
+          if (a.action === 'ADD_SOURCE') {
+            setSourceList(data.getShowableSources());
+            setChange(prev => !prev);
+          }
+        });
+      }
 
       // Cleanup subscriptions
       return () => {
@@ -116,9 +119,9 @@ export const CardContainer: React.FC<CardContainerProps> = ({
 
   const onItemSelectionChange = (selected: boolean) => {
     if (selected) {
-      parentDoc.state$.next('Editing');
+      parentDoc.state$.next(StateEnum.Editing);
     } else {
-      parentDoc.state$.next('Viewing');
+      parentDoc.state$.next(StateEnum.Viewing);
     }
     setChange(prev => !prev);
   };
@@ -149,7 +152,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   const handleMainItemClick = (item: any, event: any) => {
     event.stopPropagation();
     
-    if (parentDoc.state$.getValue() !== 'Viewing') {
+    if (parentDoc.state$.getValue() !== StateEnum.Viewing) {
       return;
     }
     
@@ -180,9 +183,10 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   const handleSupportItemClick = (item: any, event: any, itemDomrect?: DOMRect) => {
+    console.log('handleSupportItemClick', item.url, parentDoc.state$.getValue(), item.isKidEnabled());
     if (item.url) {
       onItemAction?.({ action: 'subcription-clicked', value: item.url });
-    } else if (parentDoc.state$.getValue() === 'Viewing') {
+    } else if (parentDoc.state$.getValue() === StateEnum.Viewing) {
       if (item.isKidEnabled()) {
         parentDoc.deselect();
         onItemAction?.({
@@ -203,25 +207,20 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     return false;
   };
 
-  const isVoting = parentDoc?.state$?.getValue() === 'Voting';
-  const isRanking = parentDoc?.state$?.getValue() === 'Ranking';
+  const isVoting = parentDoc?.state$?.getValue() === StateEnum.Voting;
+  const isRanking = parentDoc?.state$?.getValue() === StateEnum.Ranking;
   const showMoreOptions = canEdit;
-  const reOrderDisabled = data?.getRoot()?.state$?.getValue() !== 'Ranking';
+  const reOrderDisabled = data?.getRoot()?.state$?.getValue() !== StateEnum.Ranking;
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background || '#ffffff',
       minHeight: 300, // Ensure the container has a minimum height
-    },
-    content: {
       padding: 16,
     },
     item: {
       // marginBottom: 8,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
       padding: 12,
     },
     text: {
@@ -292,11 +291,9 @@ export const CardContainer: React.FC<CardContainerProps> = ({
 
   return (
     <View style={styles.container}>
-      <ScrollView ref={contentRef} style={styles.content}>
         {renderTopItem()}
         {renderSupportItems()}
         {renderSources()}
-      </ScrollView>
     </View>
   );
 }; 

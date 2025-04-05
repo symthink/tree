@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect, createRef, useCallback } from 'react';
-import { View, Animated, StyleSheet, TouchableOpacity, Text, Platform, Dimensions } from 'react-native';
+import { View, Animated, StyleSheet, TouchableOpacity, Text, Platform, Dimensions, Pressable } from 'react-native';
 import { CardContainer } from './CardContainer';
-import { SymthinkDocument } from '../core/symthink';
+import { ISymthinkDocument, StateEnum, SymthinkDocument } from '../core/symthink.class';
 import { Subject } from 'rxjs';
 import { useTheme } from '../theme/ThemeContext';
 import { NavigationProvider, useNavigation } from '../navigation/NavigationContext';
 
-interface NavigationCardDeckProps {
-  initialData: SymthinkDocument;
+interface SymthinkTreeProps {
+  initialData: ISymthinkDocument;
   canEdit?: boolean;
+  canGoBack?: boolean;
+  onBackComplete?: () => void;
 }
 
 interface NavigationItem {
@@ -20,25 +22,40 @@ interface NavigationItem {
   itemRef?: React.RefObject<View>;
 }
 
-export const NavigationCardDeck: React.FC<NavigationCardDeckProps> = ({
+export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
   canEdit = false,
+  canGoBack = false,
+  onBackComplete,
 }) => {
-  console.log('NavigationCardDeck initializing with data:', initialData);
-  
+  const [doc] = useState<SymthinkDocument>(() => {
+    const std = new SymthinkDocument();
+    std.load(initialData);
+    std.state$.next(StateEnum.Viewing);
+    return std;
+  });    
+
   return (
-    <NavigationProvider initialItem={initialData}>
-      <CardDeckNavigator canEdit={canEdit} />
+    <NavigationProvider initialItem={doc}>
+      <CardDeckNavigator 
+        canEdit={canEdit} 
+        canGoBack={canGoBack}
+        onBackComplete={onBackComplete}
+      />
     </NavigationProvider>
   );
 };
 
 interface CardDeckNavigatorProps {
   canEdit?: boolean;
+  canGoBack?: boolean;
+  onBackComplete?: () => void;
 }
 
 const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
-  canEdit = false
+  canEdit = false,
+  canGoBack = false,
+  onBackComplete,
 }) => {
   console.log('CardDeckNavigator rendering');
   
@@ -167,12 +184,12 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     const currentCardSlideLeft = [
       Animated.timing(currentCard.position, {
         toValue: { x: -width, y: 0 },
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
       Animated.timing(currentCard.opacity, {
         toValue: 0.5,
-        duration: 250,
+        duration: 350,
         useNativeDriver: true,
       }),
     ];
@@ -182,13 +199,13 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       // Move the shared element to the top of the screen
       Animated.timing(sharedElementPosition, {
         toValue: { x: 20, y: 20 },
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
       // Scale the shared element if needed
       Animated.timing(sharedElementScale, {
         toValue: 1,
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
     ];
@@ -198,19 +215,19 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       // Slide the new card in from the right
       Animated.timing(newCard.position, {
         toValue: { x: 0, y: 0 },
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
       // Fade in the new card
       Animated.timing(newCard.opacity, {
         toValue: 1,
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
       }),
       // Fade out the shared element as the new card completes its entrance
       Animated.timing(sharedElementOpacity, {
         toValue: 0,
-        duration: 200,
+        duration: 300,
         delay: 150,
         useNativeDriver: true,
       }),
@@ -278,8 +295,16 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       // Remove the item from navigation context after animation completes
       popItem();
       setAnimating(false);
+      onBackComplete?.();
     });
-  }, [contextStack.length, isAnimating, setAnimating, popItem, animatedItems, width]);
+  }, [contextStack.length, isAnimating, setAnimating, popItem, animatedItems, width, onBackComplete]);
+
+  // Add effect to handle canGoBack prop
+  useEffect(() => {
+    if (canGoBack && !isAnimating && contextStack.length > 1) {
+      navigateBack();
+    }
+  }, [canGoBack, isAnimating, navigateBack, contextStack.length]);
 
   const handleDocAction = (action: { action: string; value: any }) => {
     console.log('Doc action:', action);
@@ -289,16 +314,25 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   };
 
   const renderBackButton = () => {
-    if (contextStack.length <= 1) return null;
+    // Only show built-in back button if:
+    // 1. We're in not edit mode
+    // 2. We have more than one item in the stack
+    // 3. The current item has a parent (meaning it's not the root)
+    const shouldShowBack = !canEdit && 
+      contextStack.length > 1 && 
+      currentItem && 
+      currentItem.parent !== null;
+    
+    if (!shouldShowBack) return null;
 
     return (
-      <TouchableOpacity
-        style={styles.backButton}
+      <Pressable
+        style={[styles.backButton, { marginTop: 16 }]}
         onPress={navigateBack}
         disabled={isAnimating}
       >
         <Text style={[styles.backButtonText, { color: colors.primary }]}>← Back</Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -330,25 +364,10 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      position: 'relative',
       backgroundColor: colors.background || '#ffffff',
-      overflow: 'hidden',
-      minHeight: 400,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border || '#e0e0e0',
-    },
-    cardContainer: {
-      position: 'absolute',
-      width: '100%',
       height: '100%',
-      backgroundColor: colors.background || '#ffffff',
     },
     backButton: {
-      position: 'absolute',
-      top: 10,
-      left: 10,
-      zIndex: 1000,
       padding: 8,
       borderRadius: 4,
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -389,13 +408,14 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     console.log('No visible items, rendering fallback with initialData');
     return (
       <View style={styles.container}>
-        <CardContainer
+        <Text>No visible items</Text>
+        {/* <CardContainer
           data={currentItem || contextStack[0]}
           canEdit={canEdit}
           notify={notifyRef.current}
           onItemAction={handleItemAction}
           onDocAction={handleDocAction}
-        />
+        /> */}
       </View>
     );
   }
@@ -410,7 +430,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           key={`card-${index}-${item.data?.id || index}`}
           ref={item.itemRef}
           style={[
-            styles.cardContainer,
             {
               zIndex: item.zIndex,
               transform: [

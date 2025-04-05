@@ -1,3 +1,5 @@
 node_modules
 .vite
 .DS_Store
+dist
+demo/src/mock-data.json

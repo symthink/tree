@@ -21,7 +21,7 @@ export const SupportList: React.FC<SupportListProps> = ({
   onKeyAction,
 }) => {
   const { colors } = useTheme();
-
+  
   const styles = StyleSheet.create({
     container: {
       marginTop: 16,
@@ -56,7 +56,6 @@ export const SupportList: React.FC<SupportListProps> = ({
   if (!items || items.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.header}>Supporting Ideas</Text>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No supporting ideas yet</Text>
         </View>
@@ -66,7 +65,6 @@ export const SupportList: React.FC<SupportListProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Supporting Ideas</Text>
       <FlatList
         data={items}
         renderItem={renderItem}

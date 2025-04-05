@@ -15,7 +15,7 @@ export { SupportList } from './components/SupportList';
 export { TextEditor } from './components/TextEditor';
 
 // Export navigation components  
-export { NavigationCardDeck } from './components/NavigationCardDeck';
+export { SymthinkTree } from './components/SymthinkTree';
 export { NavigationProvider, useNavigation } from './navigation/NavigationContext';
 
 // Export theme context

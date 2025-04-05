@@ -24,6 +24,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   
   const isEditable = !!(item.selected && canEdit);
+  const hasChildSupports = item.support && item.support.length > 0;
 
   const handleClick = (e: any) => {
     if (onItemClick) {
@@ -51,24 +52,30 @@ export const SupportItem: React.FC<SupportItemProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: colors.border,
       padding: 8,
       marginVertical: 4,
       backgroundColor: item.selected ? '#e8f4ff' : colors.background,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
     },
     hovered: {
       backgroundColor: '#f5f5f5',
     },
+    bullet: {
+      marginRight: 8,
+      fontSize: 16,
+      color: colors.text,
+    },
     text: {
       color: colors.text,
       fontSize: 14,
+      flex: 1,
     },
     placeholder: {
       color: '#888888',
       fontSize: 14,
       fontStyle: 'italic',
+      flex: 1,
     }
   });
   
@@ -81,6 +88,10 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       onPress={handleClick}
       {...hoverProps}
     >
+      <Text style={styles.bullet}>
+        {hasChildSupports ? '•' : '○'}
+      </Text>
+      
       {isEditable ? (
         <TextEditor
           item={item}

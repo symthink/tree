@@ -62,7 +62,7 @@ export const SourcesList: React.FC<SourcesListProps> = ({
       <FlatList
         data={sources}
         renderItem={renderSourceItem}
-        keyExtractor={(item, index) => item.id || index.toString()}
+        keyExtractor={(item, index) => `${item.id || item.url || 'source'}-${index}`}
       />
     </View>
   );

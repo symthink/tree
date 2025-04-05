@@ -95,10 +95,6 @@ export const CardItem: React.FC<CardItemProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 12,
       marginBottom: 8,
       backgroundColor: item.selected && canEdit ? '#e8f4ff' : colors.background,
     },
@@ -113,11 +109,9 @@ export const CardItem: React.FC<CardItemProps> = ({
       color: colors.text,
     },
     title: {
-      fontSize: 16,
       fontWeight: 'bold',
-      color: colors.primary,
-      marginBottom: 4,
-      textTransform: 'capitalize',
+      marginBottom: 2,
+      textTransform: 'capitalize'
     },
     placeholder: {
       color: '#888888',
@@ -137,7 +131,7 @@ export const CardItem: React.FC<CardItemProps> = ({
       justifyContent: 'flex-end',
     },
   });
-
+console.log('isEditable', isEditable, canEdit, item.selected)
   return (
     <TouchableOpacity
       style={[
@@ -180,9 +174,9 @@ export const CardItem: React.FC<CardItemProps> = ({
               </View>
             )}
           </View>
-          {canEdit && (
+          {/* {canEdit && (
             <ItemOptions item={item} onOptionsClick={handleOptionsClick} />
-          )}
+          )} */}
         </>
       )}
     </TouchableOpacity>
