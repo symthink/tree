@@ -36,9 +36,16 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
 
   const currentItem = navigationStack[navigationStack.length - 1] || null;
 
-  const pushItem = useCallback((item: any) => {
+  const pushItem = useCallback((item: any): Promise<void> => {
     console.log('Pushing item to navigation stack:', item);
-    setNavigationStack(prev => [...prev, item]);
+    return new Promise(resolve => {
+      setNavigationStack(prev => {
+        const newStack = [...prev, item];
+        // Use setTimeout to ensure this resolves after the state update
+        setTimeout(resolve, 0);
+        return newStack;
+      });
+    });
   }, []);
 
   const popItem = useCallback(() => {

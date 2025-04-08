@@ -178,12 +178,11 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     });
   };
 
-  const handleMainItemExpandClick = (item: any) => {
+  const mainItemEditFullClick = (item: any) => {
     onItemAction?.({ action: 'edit-full', value: item });
   };
 
   const handleSupportItemClick = (item: any, event: any, itemDomrect?: DOMRect) => {
-    console.log('handleSupportItemClick', item.url, parentDoc.state$.getValue(), item.isKidEnabled());
     if (item.url) {
       onItemAction?.({ action: 'subcription-clicked', value: item.url });
     } else if (parentDoc.state$.getValue() === StateEnum.Viewing) {
@@ -251,7 +250,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         sourceNumbers={[]}
         onItemClick={handleMainItemClick}
         onOptionsClick={handleMainItemOptionsClick}
-        onExpandClick={handleMainItemExpandClick}
+        onExpandClick={mainItemEditFullClick}
         onTextChange={() => modified()}
         onKeyAction={handleKeyAction}
       />

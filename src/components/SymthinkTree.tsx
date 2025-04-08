@@ -69,9 +69,8 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     isAnimating 
   });
   
-  // Create and maintain animated values for each navigation item
-  const [animatedItems, setAnimatedItems] = useState<Map<string, NavigationItem>>(new Map());
-  
+  const animatedItems = useRef<Map<string, NavigationItem>>(new Map());
+  const [animatedItemsVersion, setAnimatedItemsVersion] = useState(0);
   const notifyRef = useRef<Subject<string>>(new Subject<string>());
   const selectedItemRef = useRef<any>(null);
   const selectedItemPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -83,16 +82,25 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   useEffect(() => {
     console.log('Navigation stack changed, updating animated items');
     
-    // Create or get animated values for each item in the stack
-    const newAnimatedItems = new Map(animatedItems);
+    // Create a new map that exactly matches the contextStack
+    const newAnimatedItems = new Map();
     
     contextStack.forEach((item, index) => {
       const id = item.id || `item-${index}`;
       console.log(`Processing stack item ${index}:`, item.text || 'No text');
       
-      if (!newAnimatedItems.has(id)) {
-        // Create new animated values for this item
-        console.log(`Creating new animated values for item ${id}`);
+      // Reuse existing animated values if possible to prevent animation jumps
+      const existingItem = animatedItems.current.get(id);
+      
+      if (existingItem) {
+        // Update the data but keep the animated values
+        newAnimatedItems.set(id, {
+          ...existingItem,
+          data: item,
+          zIndex: index + 1,
+        });
+      } else {
+        // Create new animated values for the item
         newAnimatedItems.set(id, {
           data: item,
           position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
@@ -104,8 +112,31 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       }
     });
     
-    setAnimatedItems(newAnimatedItems);
+    // Update the ref value and increment the version to trigger a re-render
+    animatedItems.current = newAnimatedItems;
+    setAnimatedItemsVersion(v => v + 1);
   }, [contextStack, width]);
+
+  // Initialize animated items on mount
+  useEffect(() => {
+    if (contextStack.length > 0 && animatedItems.current.size === 0) {
+      const newAnimatedItems = new Map();
+      contextStack.forEach((item, index) => {
+        const id = item.id || `item-${index}`;
+        newAnimatedItems.set(id, {
+          data: item,
+          position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
+          opacity: new Animated.Value(index === 0 ? 1 : 0),
+          scale: new Animated.Value(1),
+          zIndex: index + 1,
+          itemRef: createRef<View>(),
+        });
+      });
+      // Update state instead of ref
+      animatedItems.current = newAnimatedItems;
+      setAnimatedItemsVersion(v => v + 1);
+    }
+  }, []);
 
   // Clean up the subject when component unmounts
   useEffect(() => {
@@ -137,119 +168,91 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     domrect?: DOMRect; 
     pointerEvent?: any 
   }) => {
-    console.log('Item action:', action);
+    console.log('Item action:', action.action, isAnimating, action.domrect);
     if (action.action === 'support-clicked' && !isAnimating) {
       const supportItem = action.value;
-      selectedItemRef.current = supportItem;
       
-      // Get the position of the tapped item for shared element animation
-      const itemMeasurements = await measureSelectedItem(action.domrect);
-      selectedItemPosition.current = {
-        x: itemMeasurements.x,
-        y: itemMeasurements.y
-      };
+      console.log('Support clicked, stack length:', contextStack.length);
+      console.log('Animated items:', Array.from(animatedItems.current.keys()));
       
-      // Set up the shared element position
-      sharedElementPosition.setValue({
-        x: itemMeasurements.x,
-        y: itemMeasurements.y
+      // Set animating state to prevent multiple clicks
+      setAnimating(true);
+      
+      // Find the current card before we push the new one
+      const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
+      console.log('Looking for card with ID:', currentCardId);
+      
+      const currentCard = animatedItems.current.get(currentCardId);
+      console.log('Found card:', currentCard ? 'yes' : 'no');
+      
+      if (!currentCard) {
+        console.error('Could not find current card for animation');
+        setAnimating(false);
+        return;
+      }
+      
+      // Add a debug listener to the animation value to log changes
+      const debugXListener = currentCard.position.x.addListener(({ value }) => {
+        console.log('Current animation X value:', value);
       });
       
-      // First add the item to the navigation stack
-      pushItem(supportItem);
+      // First, push the new item to the stack
+      await pushItem(supportItem);
       
-      // Then start the transition animation
-      navigateForward(supportItem, itemMeasurements);
+      // Get the new card that was just added
+      const newCardId = supportItem.id || `item-${contextStack.length - 1}`;
+      const newCard = animatedItems.current.get(newCardId);
+      
+      if (!newCard) {
+        console.error('Could not find new card for animation');
+        setAnimating(false);
+        return;
+      }
+      
+      // Set initial position for new card (off screen to the right)
+      newCard.position.setValue({ x: width, y: 0 });
+      newCard.opacity.setValue(0);
+      
+      // Start both animations in parallel
+      Animated.parallel([
+        // Slide current card left
+        Animated.timing(currentCard.position, {
+          toValue: { x: -width, y: 0 },
+          duration: 500,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        // Slide new card in from right
+        Animated.timing(newCard.position, {
+          toValue: { x: 0, y: 0 },
+          duration: 500,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        // Fade in new card
+        Animated.timing(newCard.opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: Platform.OS !== 'web',
+        })
+      ]).start((result) => {
+        console.log('Slide animation completed, success:', result.finished);
+        
+        // Remove the debug listener
+        currentCard.position.x.removeListener(debugXListener);
+        setAnimating(false);
+      });
     }
   };
 
-  const navigateForward = useCallback((item: any, itemMeasurements: { x: number; y: number; width: number; height: number }) => {
-    setAnimating(true);
-
-    // Get animated values for current and new cards
-    const stack = Array.from(animatedItems.values());
-    const currentCard = stack[stack.length - 2]; // Previous top card
-    const newCard = stack[stack.length - 1]; // New top card
-
-    if (!currentCard || !newCard) {
-      console.warn('Unable to find cards for animation, stack length:', stack.length);
-      setAnimating(false);
+  const navigateBack = useCallback(() => {
+    if (contextStack.length <= 1 || isAnimating) {
+      console.log('Cannot navigate back:', { stackLength: contextStack.length, isAnimating });
       return;
     }
-
-    // Show the shared element during transition
-    sharedElementOpacity.setValue(1);
-
-    // First phase: Animate current card sliding left
-    const currentCardSlideLeft = [
-      Animated.timing(currentCard.position, {
-        toValue: { x: -width, y: 0 },
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(currentCard.opacity, {
-        toValue: 0.5,
-        duration: 350,
-        useNativeDriver: true,
-      }),
-    ];
-
-    // Second phase: Move shared element to top of new card
-    const moveSharedElement = [
-      // Move the shared element to the top of the screen
-      Animated.timing(sharedElementPosition, {
-        toValue: { x: 20, y: 20 },
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // Scale the shared element if needed
-      Animated.timing(sharedElementScale, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ];
-
-    // Third phase: Fade in the new card and hide shared element
-    const fadeInNewCard = [
-      // Slide the new card in from the right
-      Animated.timing(newCard.position, {
-        toValue: { x: 0, y: 0 },
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // Fade in the new card
-      Animated.timing(newCard.opacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      // Fade out the shared element as the new card completes its entrance
-      Animated.timing(sharedElementOpacity, {
-        toValue: 0,
-        duration: 300,
-        delay: 150,
-        useNativeDriver: true,
-      }),
-    ];
-
-    // Run all animations in sequence
-    Animated.sequence([
-      Animated.parallel(currentCardSlideLeft),
-      Animated.parallel(moveSharedElement),
-      Animated.parallel(fadeInNewCard),
-    ]).start(() => {
-      setAnimating(false);
-    });
-  }, [animatedItems, setAnimating, width, sharedElementOpacity, sharedElementPosition, sharedElementScale]);
-
-  const navigateBack = useCallback(() => {
-    if (contextStack.length <= 1 || isAnimating) return;
     
     setAnimating(true);
 
     // Get animated values for current and previous cards
-    const stack = Array.from(animatedItems.values());
+    const stack = Array.from(animatedItems.current.values());
     const currentCard = stack[stack.length - 1]; // Current top card
     const previousCard = stack[stack.length - 2]; // Previous card to return to
 
@@ -264,12 +267,12 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       Animated.timing(currentCard.position, {
         toValue: { x: width, y: 0 },
         duration: 250,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(currentCard.opacity, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ];
 
@@ -278,12 +281,12 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       Animated.timing(previousCard.position, {
         toValue: { x: 0, y: 0 },
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(previousCard.opacity, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ];
 
@@ -292,6 +295,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       Animated.parallel(currentCardAnimations),
       Animated.parallel(previousCardAnimations),
     ]).start(() => {
+      console.log('Back navigation animation complete');
       // Remove the item from navigation context after animation completes
       popItem();
       setAnimating(false);
@@ -323,11 +327,28 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       currentItem && 
       currentItem.parent !== null;
     
+    console.log('Back button conditions:', {
+      canEdit,
+      stackLength: contextStack.length,
+      hasCurrentItem: !!currentItem,
+      hasParent: currentItem?.parent !== null,
+      shouldShowBack
+    });
+    
     if (!shouldShowBack) return null;
 
     return (
       <Pressable
-        style={[styles.backButton, { marginTop: 16 }]}
+        style={[
+          styles.backButton, 
+          { 
+            marginTop: 16,
+            position: 'absolute',
+            top: 0,
+            left: 16,
+            zIndex: 1000, // Ensure it's above the cards
+          }
+        ]}
         onPress={navigateBack}
         disabled={isAnimating}
       >
@@ -366,11 +387,20 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       flex: 1,
       backgroundColor: colors.background || '#ffffff',
       height: '100%',
+      position: 'relative', // Add this to ensure proper positioning context
     },
     backButton: {
       padding: 8,
       borderRadius: 4,
       backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
     },
     backButtonText: {
       fontWeight: 'bold',
@@ -391,15 +421,51 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   });
 
   const getVisibleItems = useCallback(() => {
+    // If we have no animated items but have a context stack, initialize them
+    if (animatedItems.current.size === 0 && contextStack.length > 0) {
+      const newAnimatedItems = new Map();
+      contextStack.forEach((item, index) => {
+        const id = item.id || `item-${index}`;
+        newAnimatedItems.set(id, {
+          data: item,
+          position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
+          opacity: new Animated.Value(index === 0 ? 1 : 0),
+          scale: new Animated.Value(1),
+          zIndex: index + 1,
+          itemRef: createRef<View>(),
+        });
+      });
+      // Update state instead of ref in the next render cycle
+      animatedItems.current = newAnimatedItems;
+      setAnimatedItemsVersion(v => v + 1);
+    }
+
     // Create a sorted array of animated items based on the navigation stack
     const visibleItems = contextStack.map((item, index) => {
       const id = item.id || `item-${index}`;
-      return animatedItems.get(id);
+      const animItem = animatedItems.current.get(id);
+      
+      if (!animItem) {
+        console.warn(`Could not find animated item for ${id}, trying to create it`);
+        // Create it on the fly if missing
+        const newItem = {
+          data: item,
+          position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
+          opacity: new Animated.Value(index === 0 ? 1 : 0),
+          scale: new Animated.Value(1),
+          zIndex: index + 1,
+          itemRef: createRef<View>(),
+        };
+        animatedItems.current.set(id, newItem);
+        return newItem;
+      }
+      
+      return animItem;
     }).filter((item): item is NavigationItem => item !== undefined);
     
     console.log(`Rendering ${visibleItems.length} visible items`);
     return visibleItems;
-  }, [contextStack, animatedItems]);
+  }, [contextStack, width, animatedItemsVersion]);
 
   const visibleItems = getVisibleItems();
   
@@ -420,6 +486,24 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     );
   }
 
+  // Let's add a logging function to help debug the render process
+  useEffect(() => {
+    console.log('Rendered CardDeckNavigator with', visibleItems.length, 'visible items');
+    visibleItems.forEach((item, i) => {
+      console.log(`- Item ${i}: id=${item.data?.id}, zIndex=${item.zIndex}, has ref=${!!item.itemRef}`);
+    });
+  }, [visibleItems]);
+
+  // Add a debug effect to monitor navigation state
+  useEffect(() => {
+    console.log('Navigation state changed:', {
+      stackLength: contextStack.length,
+      currentItem: currentItem?.text,
+      isAnimating,
+      canEdit
+    });
+  }, [contextStack, currentItem, isAnimating, canEdit]);
+
   return (
     <View style={styles.container}>
       {renderBackButton()}
@@ -429,17 +513,21 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
         <Animated.View
           key={`card-${index}-${item.data?.id || index}`}
           ref={item.itemRef}
-          style={[
-            {
-              zIndex: item.zIndex,
-              transform: [
-                { translateX: item.position.x },
-                { translateY: item.position.y },
-                { scale: item.scale },
-              ],
-              opacity: item.opacity,
-            },
-          ]}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: colors.background,
+            zIndex: item.zIndex,
+            opacity: item.opacity,
+            transform: [
+              { translateX: item.position.x },
+              { translateY: item.position.y },
+              { scale: item.scale }
+            ],
+          }}
         >
           <CardContainer
             data={item.data}

@@ -133,7 +133,6 @@ const App = () => {
           color: '#888',
           fontSize: '14px'
         }}>
-          <p>Tap on support items to navigate through the document tree</p>
         </footer>
       </div>
     </ThemeProvider>
