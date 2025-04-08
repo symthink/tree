@@ -30,7 +30,7 @@ const App = () => {
   // });
 
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [canEdit, setCanEdit] = useState(true);
+  const [canEdit, setCanEdit] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
   const notifyRef = useRef<Subject<string>>(new Subject<string>());
 
@@ -88,10 +88,11 @@ const App = () => {
           </button>
         </div>
         <hr />
-        <div style={{
+        <div id="demo-container" style={{
           width: '375px',
           padding: '0',
           margin: '0 auto',
+          border: '1px solid red'
         }}>
           {(canEdit && canGoBack) && (
             <div style={{

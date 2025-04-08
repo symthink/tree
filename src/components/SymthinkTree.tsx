@@ -22,6 +22,21 @@ interface NavigationItem {
   itemRef?: React.RefObject<View>;
 }
 
+// Types for animation state
+interface AnimationState {
+  position: Animated.ValueXY;
+  opacity: Animated.Value;
+  scale: Animated.Value;
+  zIndex: number;
+  itemRef?: React.RefObject<View>;
+}
+
+interface AnimatedItem {
+  id: string;
+  data: any;
+  animation: AnimationState;
+}
+
 export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
   canEdit = false,
@@ -52,22 +67,91 @@ interface CardDeckNavigatorProps {
   onBackComplete?: () => void;
 }
 
+// Animation utility functions
+const createSlideAnimation = (
+  card: NavigationItem,
+  toValue: { x: number; y: number },
+  duration: number = 500
+) => {
+  return Animated.timing(card.position, {
+    toValue,
+    duration,
+    useNativeDriver: Platform.OS !== 'web',
+  });
+};
+
+const createFadeAnimation = (
+  card: NavigationItem,
+  toValue: number,
+  duration: number = 300
+) => {
+  return Animated.timing(card.opacity, {
+    toValue,
+    duration,
+    useNativeDriver: Platform.OS !== 'web',
+  });
+};
+
+const animateCardTransition = (
+  currentCard: NavigationItem,
+  newCard: NavigationItem,
+  width: number,
+  onComplete?: () => void
+) => {
+  // Set initial position for new card (off screen to the right)
+  newCard.position.setValue({ x: width, y: 0 });
+  newCard.opacity.setValue(0);
+  
+  // Start both animations in parallel
+  Animated.parallel([
+    // Slide current card left
+    createSlideAnimation(currentCard, { x: -width, y: 0 }),
+    // Slide new card in from right
+    createSlideAnimation(newCard, { x: 0, y: 0 }),
+    // Fade in new card
+    createFadeAnimation(newCard, 1)
+  ]).start((result) => {
+    console.log('Card transition animation completed, success:', result.finished);
+    onComplete?.();
+  });
+};
+
+const animateBackTransition = (
+  currentCard: NavigationItem,
+  previousCard: NavigationItem,
+  width: number,
+  onComplete?: () => void
+) => {
+  // First phase: Fade out current card to the right
+  const currentCardAnimations = [
+    createSlideAnimation(currentCard, { x: width, y: 0 }, 250),
+    createFadeAnimation(currentCard, 0, 200)
+  ];
+
+  // Second phase: Bring back the previous card from the left
+  const previousCardAnimations = [
+    createSlideAnimation(previousCard, { x: 0, y: 0 }, 300),
+    createFadeAnimation(previousCard, 1, 300)
+  ];
+
+  // Run the animations
+  Animated.sequence([
+    Animated.parallel(currentCardAnimations),
+    Animated.parallel(previousCardAnimations),
+  ]).start(() => {
+    console.log('Back navigation animation complete');
+    onComplete?.();
+  });
+};
+
 const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   canEdit = false,
   canGoBack = false,
   onBackComplete,
 }) => {
-  console.log('CardDeckNavigator rendering');
-  
   const { colors } = useTheme();
   const { width, height } = Dimensions.get('window');
   const { navigationStack: contextStack, currentItem, pushItem, popItem, isAnimating, setAnimating } = useNavigation();
-  
-  console.log('Navigation context:', { 
-    stackLength: contextStack.length, 
-    currentItem: currentItem?.text || 'No current item',
-    isAnimating 
-  });
   
   const animatedItems = useRef<Map<string, NavigationItem>>(new Map());
   const [animatedItemsVersion, setAnimatedItemsVersion] = useState(0);
@@ -80,14 +164,10 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   // Initialize or update animated items when the navigation stack changes
   useEffect(() => {
-    console.log('Navigation stack changed, updating animated items');
-    
-    // Create a new map that exactly matches the contextStack
     const newAnimatedItems = new Map();
     
     contextStack.forEach((item, index) => {
       const id = item.id || `item-${index}`;
-      console.log(`Processing stack item ${index}:`, item.text || 'No text');
       
       // Reuse existing animated values if possible to prevent animation jumps
       const existingItem = animatedItems.current.get(id);
@@ -112,31 +192,9 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       }
     });
     
-    // Update the ref value and increment the version to trigger a re-render
     animatedItems.current = newAnimatedItems;
     setAnimatedItemsVersion(v => v + 1);
   }, [contextStack, width]);
-
-  // Initialize animated items on mount
-  useEffect(() => {
-    if (contextStack.length > 0 && animatedItems.current.size === 0) {
-      const newAnimatedItems = new Map();
-      contextStack.forEach((item, index) => {
-        const id = item.id || `item-${index}`;
-        newAnimatedItems.set(id, {
-          data: item,
-          position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
-          opacity: new Animated.Value(index === 0 ? 1 : 0),
-          scale: new Animated.Value(1),
-          zIndex: index + 1,
-          itemRef: createRef<View>(),
-        });
-      });
-      // Update state instead of ref
-      animatedItems.current = newAnimatedItems;
-      setAnimatedItemsVersion(v => v + 1);
-    }
-  }, []);
 
   // Clean up the subject when component unmounts
   useEffect(() => {
@@ -145,45 +203,18 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     };
   }, []);
 
-  const measureSelectedItem = (domrect?: DOMRect): Promise<{ x: number; y: number; width: number; height: number }> => {
-    return new Promise((resolve) => {
-      if (domrect) {
-        // Use the provided DOMRect if available (web platform)
-        resolve({
-          x: domrect.x,
-          y: domrect.y,
-          width: domrect.width,
-          height: domrect.height
-        });
-      } else {
-        // Default position if measurement fails
-        resolve({ x: 0, y: 100, width: width, height: 50 });
-      }
-    });
-  };
-
   const handleItemAction = async (action: { 
     action: string; 
     value: any; 
     domrect?: DOMRect; 
     pointerEvent?: any 
   }) => {
-    console.log('Item action:', action.action, isAnimating, action.domrect);
     if (action.action === 'support-clicked' && !isAnimating) {
       const supportItem = action.value;
-      
-      console.log('Support clicked, stack length:', contextStack.length);
-      console.log('Animated items:', Array.from(animatedItems.current.keys()));
-      
-      // Set animating state to prevent multiple clicks
       setAnimating(true);
       
-      // Find the current card before we push the new one
       const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
-      console.log('Looking for card with ID:', currentCardId);
-      
       const currentCard = animatedItems.current.get(currentCardId);
-      console.log('Found card:', currentCard ? 'yes' : 'no');
       
       if (!currentCard) {
         console.error('Could not find current card for animation');
@@ -191,53 +222,22 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
         return;
       }
       
-      // Add a debug listener to the animation value to log changes
-      const debugXListener = currentCard.position.x.addListener(({ value }) => {
-        console.log('Current animation X value:', value);
-      });
+      // Initialize the new card in the animation map before pushing to stack
+      const newCardId = supportItem.id || `item-${contextStack.length}`;
+      const newCard = {
+        data: supportItem,
+        position: new Animated.ValueXY({ x: width, y: 0 }),
+        opacity: new Animated.Value(0),
+        scale: new Animated.Value(1),
+        zIndex: contextStack.length + 1,
+        itemRef: createRef<View>(),
+      };
+      animatedItems.current.set(newCardId, newCard);
       
-      // First, push the new item to the stack
+      // Now push the item to the stack
       await pushItem(supportItem);
       
-      // Get the new card that was just added
-      const newCardId = supportItem.id || `item-${contextStack.length - 1}`;
-      const newCard = animatedItems.current.get(newCardId);
-      
-      if (!newCard) {
-        console.error('Could not find new card for animation');
-        setAnimating(false);
-        return;
-      }
-      
-      // Set initial position for new card (off screen to the right)
-      newCard.position.setValue({ x: width, y: 0 });
-      newCard.opacity.setValue(0);
-      
-      // Start both animations in parallel
-      Animated.parallel([
-        // Slide current card left
-        Animated.timing(currentCard.position, {
-          toValue: { x: -width, y: 0 },
-          duration: 500,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        // Slide new card in from right
-        Animated.timing(newCard.position, {
-          toValue: { x: 0, y: 0 },
-          duration: 500,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        // Fade in new card
-        Animated.timing(newCard.opacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: Platform.OS !== 'web',
-        })
-      ]).start((result) => {
-        console.log('Slide animation completed, success:', result.finished);
-        
-        // Remove the debug listener
-        currentCard.position.x.removeListener(debugXListener);
+      animateCardTransition(currentCard, newCard, width, () => {
         setAnimating(false);
       });
     }
@@ -245,63 +245,27 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   const navigateBack = useCallback(() => {
     if (contextStack.length <= 1 || isAnimating) {
-      console.log('Cannot navigate back:', { stackLength: contextStack.length, isAnimating });
       return;
     }
     
     setAnimating(true);
 
-    // Get animated values for current and previous cards
     const stack = Array.from(animatedItems.current.values());
-    const currentCard = stack[stack.length - 1]; // Current top card
-    const previousCard = stack[stack.length - 2]; // Previous card to return to
+    const currentCard = stack[stack.length - 1];
+    const previousCard = stack[stack.length - 2];
 
     if (!currentCard || !previousCard) {
-      console.warn('Unable to find cards for back navigation, stack length:', stack.length);
+      console.warn('Unable to find cards for back navigation');
       setAnimating(false);
       return;
     }
 
-    // First phase: Fade out current card to the right
-    const currentCardAnimations = [
-      Animated.timing(currentCard.position, {
-        toValue: { x: width, y: 0 },
-        duration: 250,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-      Animated.timing(currentCard.opacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-    ];
-
-    // Second phase: Bring back the previous card from the left
-    const previousCardAnimations = [
-      Animated.timing(previousCard.position, {
-        toValue: { x: 0, y: 0 },
-        duration: 300,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-      Animated.timing(previousCard.opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-    ];
-
-    // Run the animations
-    Animated.sequence([
-      Animated.parallel(currentCardAnimations),
-      Animated.parallel(previousCardAnimations),
-    ]).start(() => {
-      console.log('Back navigation animation complete');
-      // Remove the item from navigation context after animation completes
+    animateBackTransition(currentCard, previousCard, width, () => {
       popItem();
       setAnimating(false);
       onBackComplete?.();
     });
-  }, [contextStack.length, isAnimating, setAnimating, popItem, animatedItems, width, onBackComplete]);
+  }, [contextStack.length, isAnimating, setAnimating, popItem, width, onBackComplete]);
 
   // Add effect to handle canGoBack prop
   useEffect(() => {
@@ -421,34 +385,14 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   });
 
   const getVisibleItems = useCallback(() => {
-    // If we have no animated items but have a context stack, initialize them
-    if (animatedItems.current.size === 0 && contextStack.length > 0) {
-      const newAnimatedItems = new Map();
-      contextStack.forEach((item, index) => {
-        const id = item.id || `item-${index}`;
-        newAnimatedItems.set(id, {
-          data: item,
-          position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
-          opacity: new Animated.Value(index === 0 ? 1 : 0),
-          scale: new Animated.Value(1),
-          zIndex: index + 1,
-          itemRef: createRef<View>(),
-        });
-      });
-      // Update state instead of ref in the next render cycle
-      animatedItems.current = newAnimatedItems;
-      setAnimatedItemsVersion(v => v + 1);
-    }
-
     // Create a sorted array of animated items based on the navigation stack
-    const visibleItems = contextStack.map((item, index) => {
+    return contextStack.map((item, index) => {
       const id = item.id || `item-${index}`;
-      const animItem = animatedItems.current.get(id);
+      let animItem = animatedItems.current.get(id);
       
       if (!animItem) {
-        console.warn(`Could not find animated item for ${id}, trying to create it`);
-        // Create it on the fly if missing
-        const newItem = {
+        // Create the item if it doesn't exist
+        animItem = {
           data: item,
           position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
           opacity: new Animated.Value(index === 0 ? 1 : 0),
@@ -456,16 +400,12 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           zIndex: index + 1,
           itemRef: createRef<View>(),
         };
-        animatedItems.current.set(id, newItem);
-        return newItem;
+        animatedItems.current.set(id, animItem);
       }
       
       return animItem;
-    }).filter((item): item is NavigationItem => item !== undefined);
-    
-    console.log(`Rendering ${visibleItems.length} visible items`);
-    return visibleItems;
-  }, [contextStack, width, animatedItemsVersion]);
+    });
+  }, [contextStack, width]);
 
   const visibleItems = getVisibleItems();
   
@@ -485,24 +425,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       </View>
     );
   }
-
-  // Let's add a logging function to help debug the render process
-  useEffect(() => {
-    console.log('Rendered CardDeckNavigator with', visibleItems.length, 'visible items');
-    visibleItems.forEach((item, i) => {
-      console.log(`- Item ${i}: id=${item.data?.id}, zIndex=${item.zIndex}, has ref=${!!item.itemRef}`);
-    });
-  }, [visibleItems]);
-
-  // Add a debug effect to monitor navigation state
-  useEffect(() => {
-    console.log('Navigation state changed:', {
-      stackLength: contextStack.length,
-      currentItem: currentItem?.text,
-      isAnimating,
-      canEdit
-    });
-  }, [contextStack, currentItem, isAnimating, canEdit]);
 
   return (
     <View style={styles.container}>
