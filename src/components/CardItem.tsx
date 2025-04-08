@@ -131,7 +131,7 @@ export const CardItem: React.FC<CardItemProps> = ({
       justifyContent: 'flex-end',
     },
   });
-console.log('isEditable', isEditable, canEdit, item.selected)
+
   return (
     <TouchableOpacity
       style={[
