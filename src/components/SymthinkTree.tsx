@@ -81,7 +81,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const [animatedItems, setAnimatedItems] = useState<Map<string, NavigationItem>>(new Map());
   const notifyRef = useRef<Subject<string>>(new Subject<string>());
   const selectedItemRef = useRef<any>(null);
-  const selectedItemPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const selectedItemPosition = useRef<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
   const sharedElementOpacity = useRef(new Animated.Value(0)).current;
   const sharedElementPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const sharedElementScale = useRef(new Animated.Value(1)).current;
@@ -146,6 +146,24 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     if (action.action === 'support-clicked' && !isAnimating) {
       const supportItem = action.value;
       setAnimating(true);
+      
+      // Set up shared element animation
+      if (action.domrect) {
+        selectedItemRef.current = supportItem;
+        selectedItemPosition.current = {
+          x: action.domrect.x,
+          y: action.domrect.y,
+          width: action.domrect.width,
+          height: action.domrect.height
+        };
+        
+        // Set initial position and opacity
+        sharedElementPosition.setValue({
+          x: action.domrect.x,
+          y: action.domrect.y
+        });
+        sharedElementOpacity.setValue(1);
+      }
       
       const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
       const currentCard = animatedItems.get(currentCardId);
@@ -284,10 +302,12 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
               { translateY: sharedElementPosition.y },
               { scale: sharedElementScale },
             ],
+            width: selectedItemPosition.current.width,
+            minHeight: selectedItemPosition.current.height,
           },
         ]}
       >
-        <Text numberOfLines={1} style={styles.sharedElementText}>
+        <Text style={styles.sharedElementText}>
           {selectedItemRef.current.text || "Supporting idea"}
         </Text>
       </Animated.View>
@@ -323,12 +343,23 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       zIndex: 2000,
       padding: 10,
       borderRadius: 4,
-      backgroundColor: colors.primary,
+      backgroundColor: colors.primary + 'CC', // Add 80% opacity
       maxWidth: width * 0.8,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     sharedElementText: {
       color: 'white',
       fontWeight: 'bold',
+      flex: 1,
     },
   });
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, findNodeHandle, UIManager } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { TextEditor } from './TextEditor';
 
@@ -7,7 +7,7 @@ interface SupportItemProps {
   item: any; // Replace with proper type
   canEdit?: boolean;
   parentDoc?: any; // Replace with proper type
-  onItemClick?: (item: any, event: any) => void;
+  onItemClick?: (item: any, event: any, domrect?: DOMRect) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
 }
@@ -22,13 +22,55 @@ export const SupportItem: React.FC<SupportItemProps> = ({
 }) => {
   const { colors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
+  const itemRef = useRef<TouchableOpacity>(null);
   
   const isEditable = !!(item.selected && canEdit);
   const hasChildSupports = item.support && item.support.length > 0;
 
   const handleClick = (e: any) => {
     if (onItemClick) {
-      onItemClick(item, e);
+      if (Platform.OS === 'web') {
+        // For web, we need to account for scroll position and container offsets
+        const rect = e.target.getBoundingClientRect();
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        // Get the container's position to calculate relative coordinates
+        const container = e.target.closest('[data-testid="card-container"]');
+        const containerRect = container?.getBoundingClientRect();
+        
+        const relativeRect = new DOMRect(
+          rect.x - (containerRect?.x || 0),
+          rect.y - (containerRect?.y || 0),
+          rect.width,
+          rect.height
+        );
+        
+        onItemClick(item, e, relativeRect);
+      } else {
+        // For native, we need to measure the view
+        if (itemRef.current) {
+          const node = findNodeHandle(itemRef.current);
+          if (node) {
+            UIManager.measure(node, (x, y, width, height, pageX, pageY) => {
+              // Get the container's position
+              UIManager.measureInWindow(node, (winX, winY, winWidth, winHeight) => {
+                const relativeRect = new DOMRect(
+                  pageX - winX,
+                  pageY - winY,
+                  width,
+                  height
+                );
+                onItemClick(item, e, relativeRect);
+              });
+            });
+          } else {
+            onItemClick(item, e);
+          }
+        } else {
+          onItemClick(item, e);
+        }
+      }
     }
   };
 
@@ -81,6 +123,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   
   return (
     <TouchableOpacity
+      ref={itemRef}
       style={[
         styles.container,
         isHovered && canEdit && !item.selected ? styles.hovered : null

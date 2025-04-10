@@ -289,7 +289,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="card-container">
         {renderTopItem()}
         {renderSupportItems()}
         {renderSources()}

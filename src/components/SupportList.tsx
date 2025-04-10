@@ -7,7 +7,7 @@ interface SupportListProps {
   items: any[]; // Replace with proper type
   canEdit?: boolean;
   parentDoc?: any; // Replace with proper type
-  onItemClick?: (item: any, event: any) => void;
+  onItemClick?: (item: any, event: any, domrect?: DOMRect) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
 }
