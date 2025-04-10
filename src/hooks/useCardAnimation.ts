@@ -1,5 +1,5 @@
 import { Animated, View, Dimensions } from 'react-native';
-import { createRef, useCallback, useState } from 'react';
+import { createRef, useCallback, useState, useRef, useEffect } from 'react';
 import { ANIMATION_CONFIG } from '../constants/animation';
 import { shouldEnableAnimations } from '../utils/performance';
 import { debug, DEBUG_COLORS, getDebugStyle, measurePerformance } from '../utils/debug';
@@ -26,9 +26,18 @@ export interface AnimationHandlers {
 
 export const useCardAnimation = (width: number, handlers?: AnimationHandlers) => {
   const [debugState, setDebugState] = useState<Record<string, keyof typeof DEBUG_COLORS>>({});
+  const animationValuesRef = useRef<Map<string, AnimationState>>(new Map());
 
-  const createAnimationValues = (index: number = 0): AnimationState => {
+  const createAnimationValues = useCallback((index: number = 0): AnimationState => {
     const id = `item-${index}`;
+    
+    // Check if we already have animation values for this index
+    const existingValues = animationValuesRef.current.get(id);
+    if (existingValues) {
+      return existingValues;
+    }
+    
+    // Create new animation values
     const state: AnimationState = {
       position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
       opacity: new Animated.Value(index === 0 ? 1 : 0),
@@ -38,9 +47,19 @@ export const useCardAnimation = (width: number, handlers?: AnimationHandlers) =>
       debugState: 'IDLE',
     };
 
+    // Store the new values
+    animationValuesRef.current.set(id, state);
     setDebugState(prev => ({ ...prev, [id]: 'IDLE' }));
+    
     return state;
-  };
+  }, [width]);
+
+  // Clean up animation values when component unmounts
+  useEffect(() => {
+    return () => {
+      animationValuesRef.current.clear();
+    };
+  }, []);
 
   const createSlideAnimation = useCallback((
     animation: AnimationState,

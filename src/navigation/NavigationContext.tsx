@@ -32,7 +32,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     if (initialItem && (!navigationStack.length || navigationStack[0] !== initialItem)) {
       setNavigationStack([initialItem]);
     }
-  }, [initialItem]);
+  }, [initialItem, navigationStack]);
 
   const currentItem = navigationStack[navigationStack.length - 1] || null;
 
@@ -41,8 +41,7 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
     return new Promise(resolve => {
       setNavigationStack(prev => {
         const newStack = [...prev, item];
-        // Use setTimeout to ensure this resolves after the state update
-        setTimeout(resolve, 0);
+        resolve();
         return newStack;
       });
     });

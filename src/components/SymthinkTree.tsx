@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect, createRef, useCallback } from 'react';
-import { View, Animated, StyleSheet, TouchableOpacity, Text, Platform, Dimensions, Pressable } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { View, Animated, StyleSheet, Text, Dimensions, Pressable } from 'react-native';
 import { CardContainer } from './CardContainer';
 import { ISymthinkDocument, StateEnum, SymthinkDocument } from '../core/symthink.class';
 import { Subject } from 'rxjs';
 import { useTheme } from '../theme/ThemeContext';
 import { NavigationProvider, useNavigation } from '../navigation/NavigationContext';
-import { useCardAnimation, NavigationItem, AnimationHandlers } from '../hooks/useCardAnimation';
+import { useCardAnimation, NavigationItem } from '../hooks/useCardAnimation';
 import { globalStyles } from '../theme/globalStyles';
 
 interface SymthinkTreeProps {
@@ -13,18 +13,6 @@ interface SymthinkTreeProps {
   canEdit?: boolean;
   canGoBack?: boolean;
   onBackComplete?: () => void;
-}
-
-// Animation state interfaces
-interface AnimationValues {
-  position: Animated.ValueXY;
-  opacity: Animated.Value;
-  scale: Animated.Value;
-}
-
-interface AnimationState extends AnimationValues {
-  zIndex: number;
-  itemRef: React.RefObject<View>;
 }
 
 interface ItemAction {
@@ -87,54 +75,59 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const sharedElementPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const sharedElementScale = useRef(new Animated.Value(1)).current;
 
-  const animationHandlers: AnimationHandlers = {
+  const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {
       console.log('Animation started');
-      // You could add loading indicators or disable interactions here
     },
     onAnimationEnd: () => {
       console.log('Animation completed successfully');
-      // You could re-enable interactions or hide loading indicators here
     },
     onAnimationCancel: () => {
       console.log('Animation was cancelled');
-      // You could handle cleanup or error states here
     },
-  };
+  });
 
-  const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, animationHandlers);
-
-  // Update the effect to use setAnimatedItems
-  useEffect(() => {
-    const newAnimatedItems = new Map();
-    
-    contextStack.forEach((item, index) => {
+  // Memoize the visible items computation
+  const visibleItems = useMemo(() => {
+    return contextStack.map((item, index) => {
       const id = item.id || `item-${index}`;
+      const animItem = animatedItems.get(id);
       
-      // Reuse existing animated values if possible to prevent animation jumps
-      const existingItem = animatedItems.get(id);
-      
-      if (existingItem) {
-        // Update the data but keep the animated values
-        newAnimatedItems.set(id, {
-          ...existingItem,
-          data: item,
-          animation: {
-            ...existingItem.animation,
-            zIndex: index + 1,
-          },
-        });
-      } else {
-        // Create new animated values for the item
-        newAnimatedItems.set(id, {
+      if (!animItem) {
+        return {
           data: item,
           animation: createAnimationValues(index),
-        });
+        };
       }
+      
+      return {
+        ...animItem,
+        animation: {
+          ...animItem.animation,
+          zIndex: index + 1,
+        },
+      };
+    });
+  }, [contextStack, animatedItems, createAnimationValues]);
+
+  // Update animated items when visible items change
+  useEffect(() => {
+    const newAnimatedItems = new Map();
+    visibleItems.forEach((item, index) => {
+      const id = item.data.id || `item-${index}`;
+      newAnimatedItems.set(id, item);
     });
     
-    setAnimatedItems(newAnimatedItems);
-  }, [contextStack, width, createAnimationValues]);
+    // Only update if there are actual changes
+    const currentKeys = Array.from(animatedItems.keys());
+    const newKeys = Array.from(newAnimatedItems.keys());
+    
+    if (currentKeys.length !== newKeys.length || 
+        !currentKeys.every(key => newAnimatedItems.has(key)) ||
+        !newKeys.every(key => animatedItems.has(key))) {
+      setAnimatedItems(newAnimatedItems);
+    }
+  }, [visibleItems, animatedItems]);
 
   // Clean up the subject when component unmounts
   useEffect(() => {
@@ -363,36 +356,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     },
   });
 
-  const getVisibleItems = useCallback(() => {
-    // Create a sorted array of animated items based on the navigation stack
-    return contextStack.map((item, index) => {
-      const id = item.id || `item-${index}`;
-      let animItem = animatedItems.get(id);
-      
-      // Create a new NavigationItem if one doesn't exist
-      if (!animItem) {
-        const newItem: NavigationItem = {
-          data: item,
-          animation: createAnimationValues(index),
-        };
-        animItem = newItem;
-        // Update the state with the new item
-        setAnimatedItems(prev => {
-          const newMap = new Map(prev);
-          newMap.set(id, newItem);
-          return newMap;
-        });
-      } else {
-        // Update the zIndex of existing items
-        animItem.animation.zIndex = index + 1;
-      }
-      
-      return animItem;
-    });
-  }, [contextStack, width, animatedItems, createAnimationValues]);
-
-  const visibleItems = getVisibleItems();
-  
   // If we have no visible items, render a fallback card container with the current item
   if (visibleItems.length === 0) {
     console.log('No visible items, rendering fallback with initialData');
