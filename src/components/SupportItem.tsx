@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, findNodeHandle, UIManager } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { TextEditor } from './TextEditor';
+import { globalStyles } from '../theme/globalStyles';
 
 interface SupportItemProps {
   item: any; // Replace with proper type
@@ -96,7 +97,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
     container: {
       padding: 8,
       marginVertical: 4,
-      backgroundColor: item.selected ? '#e8f4ff' : colors.background,
+      backgroundColor: item.selected ? colors.selected : colors.background,
       flexDirection: 'row',
       alignItems: 'flex-start',
     },
@@ -109,8 +110,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       color: colors.text,
     },
     text: {
-      color: colors.text,
-      fontSize: 14,
+      ...globalStyles.text,
       flex: 1,
     },
     placeholder: {

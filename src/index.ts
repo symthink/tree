@@ -25,4 +25,6 @@ export {
   type ThemeType, 
   type ThemeColors,
   type ThemeContextType 
-} from './theme/ThemeContext'; 
+} from './theme/ThemeContext';
+
+export { default as loadWebFonts } from './theme/webFonts'; 

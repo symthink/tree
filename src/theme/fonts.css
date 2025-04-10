@@ -1,0 +1,17 @@
+@font-face {
+  font-family: 'Comfortaa';
+  font-stretch: 100%;
+  src: url('./fonts/Comfortaa-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Sympunk';
+  src: url('./fonts/sympunk.eot?qs3628');
+  src: url('./fonts/sympunk.eot?qs3628#iefix') format('embedded-opentype'),
+    url('./fonts/sympunk.ttf?qs3628') format('truetype'),
+    url('./fonts/sympunk.woff?qs3628') format('woff'),
+    url('./fonts/sympunk.svg?qs3628#sympunk') format('svg');
+  font-weight: lighter;
+  font-style: normal;
+  font-display: block;
+} 

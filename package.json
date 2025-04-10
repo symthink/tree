@@ -58,6 +58,7 @@
     "vite": "^4.3.9"
   },
   "dependencies": {
+    "rollup-plugin-copy": "^3.5.0",
     "rxjs": "^7.8.2"
   }
 }

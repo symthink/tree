@@ -10,6 +10,22 @@ npm install my-shared-component
 yarn add my-shared-component
 ```
 
+## Font Loading
+
+The library includes custom fonts (Comfortaa and Sympunk) that are loaded differently depending on the platform.
+
+### Web Platform
+
+For web applications, the fonts are automatically loaded from their respective CDNs:
+- Comfortaa from Google Fonts
+- Sympunk from symthink.org
+
+No additional setup is required for web platforms.
+
+### React Native
+
+For React Native applications, the fonts are bundled with the library and loaded through the React Native asset system. No additional setup is required.
+
 ## Usage
 
 ```jsx

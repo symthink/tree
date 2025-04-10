@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { useTheme } from '../theme/ThemeContext';
 import { NavigationProvider, useNavigation } from '../navigation/NavigationContext';
 import { useCardAnimation, NavigationItem, AnimationHandlers } from '../hooks/useCardAnimation';
+import { globalStyles } from '../theme/globalStyles';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -343,7 +344,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       zIndex: 2000,
       padding: 10,
       borderRadius: 4,
-      backgroundColor: colors.primary + 'CC', // Add 80% opacity
+      backgroundColor: colors.background,
       maxWidth: width * 0.8,
       shadowColor: '#000',
       shadowOffset: {
@@ -357,8 +358,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       alignItems: 'center',
     },
     sharedElementText: {
-      color: 'white',
-      fontWeight: 'bold',
+      ...globalStyles.text,
       flex: 1,
     },
   });

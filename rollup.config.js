@@ -27,4 +27,4 @@ export default [
     ],
     external: ['react', 'react-dom', 'react-native', 'react-native-web'],
   },
-]; 
+];

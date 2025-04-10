@@ -6,6 +6,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { ExpandButton } from './ExpandButton';
 import { ItemOptions } from './ItemOptions';
 import { TextEditor } from './TextEditor';
+import { globalStyles } from '../theme/globalStyles';
 
 interface CardItemProps {
   item: any; // Replace with proper type when migrating core classes
@@ -102,7 +103,7 @@ export const CardItem: React.FC<CardItemProps> = ({
       backgroundColor: '#f5f5f5',
     },
     text: {
-      color: colors.text,
+      ...globalStyles.text,
     },
     boldText: {
       fontWeight: 'bold',

@@ -4,11 +4,13 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree } from '../../src';
+import { SymthinkTree, loadWebFonts } from '../../src';
 import { SymthinkDocument, ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs';
 import data from './mock-data.json';
 
+
+loadWebFonts();
 // User Agent display component
 const UserAgentInfo = () => {
   return (
