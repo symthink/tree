@@ -4,7 +4,14 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+      babel: {
+        plugins: [
+          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
+        ],
+      },
+    }),
     {
       name: 'configure-mobile-user-agent',
       configureServer(server) {
@@ -22,13 +29,32 @@ export default defineConfig({
       '@symthink/tree': path.resolve(__dirname, './src'),
       'react-native': 'react-native-web',
     },
-    extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js'],
+    extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js', '.json'],
   },
   server: {
     port: 3000,
     open: true,
   },
   optimizeDeps: {
-    include: ['react-native-web'],
+    include: ['react-native-web', 'rxjs'],
+    exclude: ['react-native-vector-icons'],
+    esbuildOptions: {
+      target: 'esnext',
+      supported: {
+        'top-level-await': true
+      }
+    },
+  },
+  build: {
+    rollupOptions: {
+      external: ['react-native-vector-icons'],
+    },
+  },
+  esbuild: {
+    loader: 'tsx',
+    include: /\.tsx?$/,
+    exclude: [],
+    jsx: 'automatic',
+    target: 'esnext',
   },
 }); 

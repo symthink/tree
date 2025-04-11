@@ -7,6 +7,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { NavigationProvider, useNavigation } from '../navigation/NavigationContext';
 import { useCardAnimation, NavigationItem } from '../hooks/useCardAnimation';
 import { globalStyles } from '../theme/globalStyles';
+import { Icon } from './Icon';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -276,7 +277,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
         onPress={navigateBack}
         disabled={isAnimating}
       >
-        <Text style={[styles.backButtonText, { color: colors.primary }]}>← Back</Text>
+        <Icon name="chevron-left" size={24} color={colors.primary} />
       </Pressable>
     );
   };

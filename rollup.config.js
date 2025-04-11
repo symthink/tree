@@ -21,10 +21,26 @@ export default [
     ],
     plugins: [
       peerDepsExternal(),
-      resolve(),
-      commonjs(),
-      typescript({ tsconfig: './tsconfig.json', exclude: ['**/__tests__/**'] }),
+      resolve({
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      }),
+      commonjs({
+        include: /node_modules/,
+        extensions: ['.js', '.jsx'],
+      }),
+      typescript({ 
+        tsconfig: './tsconfig.json', 
+        exclude: ['**/__tests__/**'],
+        jsx: 'react',
+      }),
     ],
-    external: ['react', 'react-dom', 'react-native', 'react-native-web'],
+    external: [
+      'react', 
+      'react-dom', 
+      'react-native', 
+      'react-native-web',
+      '@expo/vector-icons',
+      'expo-font',
+    ],
   },
 ];

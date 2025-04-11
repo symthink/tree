@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
 import { SymthinkTree, loadWebFonts } from '../../src';
 import { SymthinkDocument, ISymthinkDocument } from '../../src/core/symthink.class';
-import { Subject } from 'rxjs';
+import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
 
 
@@ -19,6 +19,13 @@ const UserAgentInfo = () => {
     </div>
   );
 };
+
+interface ItemAction {
+  action: string;
+  value: any;
+  domrect?: DOMRect;
+  pointerEvent?: any;
+}
 
 const App = () => {
   console.log('App rendering');
@@ -34,7 +41,7 @@ const App = () => {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [canEdit, setCanEdit] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
-  const notifyRef = useRef<Subject<string>>(new Subject<string>());
+  const notifyRef = useRef(new Subject());
 
   useEffect(() => {
     // Cleanup function to complete and unsubscribe from the Subject
@@ -43,7 +50,7 @@ const App = () => {
     };
   }, []);
 
-  const handleItemAction = (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => {
+  const handleItemAction = (action: ItemAction) => {
     console.log('Item action:', action);
     if (action.action === 'support-clicked') {
       setSelectedItem(action.value);
