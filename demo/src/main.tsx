@@ -4,14 +4,13 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree, loadWebFonts, IconPreloader } from '../../src';
+import { SymthinkTree, IconPreloader } from '../../src';
 import { SymthinkDocument, ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
 import { View, StyleSheet } from 'react-native';
 
 
-loadWebFonts();
 // User Agent display component
 const UserAgentInfo = () => {
   return (
@@ -28,23 +27,8 @@ interface ItemAction {
   pointerEvent?: any;
 }
 
-// Define the icons we plan to use throughout the app
-const ICONS = [
-  'chevron-left',
-  'add',
-  'more-vert',
-];
-
 const App = () => {
   console.log('App rendering');
-
-  // const [mockData] = useState<SymthinkDocument>(() => {
-  //   console.log('Creating mock data with: ', data);
-  //   const std = new SymthinkDocument();
-  //   std.load(data as unknown as ISymthinkDocument);
-  //   console.log('Mock data created:', std);
-  //   return std;
-  // });
 
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [canEdit, setCanEdit] = useState(false);
@@ -134,7 +118,7 @@ const App = () => {
               </button>
             </div>
           )}
-          <IconPreloader icons={ICONS} />
+          <IconPreloader />
           <SymthinkTree 
             initialData={data as unknown as ISymthinkDocument}
             canEdit={canEdit}
