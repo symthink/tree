@@ -19,12 +19,10 @@ export { SymthinkTree } from './components/SymthinkTree';
 export { NavigationProvider, useNavigation } from './navigation/NavigationContext';
 
 // Export theme context
-export { 
-  ThemeProvider, 
-  useTheme,
-  type ThemeType, 
-  type ThemeColors,
-  type ThemeContextType 
-} from './theme/ThemeContext';
+export { ThemeProvider, useTheme } from './theme/ThemeContext';
 
+export { Icon } from './components/Icon';
+export { IconPreloader } from './components/IconPreloader';
+export { SymthinkDocument } from './core/symthink.class';
+export type { ISymthinkDocument } from './core/symthink.class';
 export { default as loadWebFonts } from './theme/webFonts'; 

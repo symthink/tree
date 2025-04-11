@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Platform } from 'react-native';
 
 interface IconProps {
@@ -9,30 +9,6 @@ interface IconProps {
 
 // Web implementation using Material Icons from Google Fonts
 const WebIcon: React.FC<IconProps> = ({ name, size, color }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  
-  useEffect(() => {
-    // Check if Material Icons font is loaded
-    const checkFontLoaded = () => {
-      const span = document.createElement('span');
-      span.className = 'material-icons';
-      span.style.visibility = 'hidden';
-      span.textContent = 'check';
-      document.body.appendChild(span);
-      
-      const isLoaded = window.getComputedStyle(span).fontFamily.includes('Material Icons');
-      document.body.removeChild(span);
-      
-      if (isLoaded) {
-        setIsLoaded(true);
-      } else {
-        setTimeout(checkFontLoaded, 100);
-      }
-    };
-    
-    checkFontLoaded();
-  }, []);
-
   // Convert hyphenated names to underscore format for Material Icons
   const iconName = name.replace(/-/g, '_');
   
@@ -45,8 +21,6 @@ const WebIcon: React.FC<IconProps> = ({ name, size, color }) => {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: isLoaded ? 1 : 0,
-        transition: 'opacity 0.2s ease-in-out',
       }}
     >
       {iconName}

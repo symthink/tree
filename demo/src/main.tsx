@@ -4,10 +4,11 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree, loadWebFonts } from '../../src';
+import { SymthinkTree, loadWebFonts, IconPreloader } from '../../src';
 import { SymthinkDocument, ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
+import { View, StyleSheet } from 'react-native';
 
 
 loadWebFonts();
@@ -26,6 +27,13 @@ interface ItemAction {
   domrect?: DOMRect;
   pointerEvent?: any;
 }
+
+// Define the icons we plan to use throughout the app
+const ICONS = [
+  'chevron-left',
+  'add',
+  'more-vert',
+];
 
 const App = () => {
   console.log('App rendering');
@@ -126,15 +134,16 @@ const App = () => {
               </button>
             </div>
           )}
-              <SymthinkTree 
-                initialData={data as unknown as ISymthinkDocument}
-                canEdit={canEdit}
-                canGoBack={canGoBack}
-                onBackComplete={() => {
-                  console.log('Back complete');
-                  setCanGoBack(false);
-                }}
-              />
+          <IconPreloader icons={ICONS} />
+          <SymthinkTree 
+            initialData={data as unknown as ISymthinkDocument}
+            canEdit={canEdit}
+            canGoBack={canGoBack}
+            onBackComplete={() => {
+              console.log('Back complete');
+              setCanGoBack(false);
+            }}
+          />
         </div>
 
         <footer style={{
