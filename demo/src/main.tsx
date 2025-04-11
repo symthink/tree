@@ -4,12 +4,12 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree, IconPreloader } from '../../src';
-import { SymthinkDocument, ISymthinkDocument } from '../../src/core/symthink.class';
+import { SymthinkTree, loadWebFonts } from '../../src';
+import { ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
-import { View, StyleSheet } from 'react-native';
 
+loadWebFonts();
 
 // User Agent display component
 const UserAgentInfo = () => {
@@ -118,7 +118,7 @@ const App = () => {
               </button>
             </div>
           )}
-          <IconPreloader />
+          
           <SymthinkTree 
             initialData={data as unknown as ISymthinkDocument}
             canEdit={canEdit}

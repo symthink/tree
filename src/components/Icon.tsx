@@ -1,8 +1,9 @@
 import React from 'react';
 import { Platform } from 'react-native';
+import { SymthinkIcon } from '../constants/icons';
 
 interface IconProps {
-  name: string;
+  name: SymthinkIcon;
   size: number;
   color: string;
 }
@@ -34,6 +35,6 @@ const NativeIcon: React.FC<IconProps> = ({ name, size, color }) => {
   return <MaterialIcons name={name} size={size} color={color} />;
 };
 
-export const Icon: React.FC<IconProps> = (props) => {
+export const Icon = React.memo<IconProps>((props) => {
   return Platform.OS === 'web' ? <WebIcon {...props} /> : <NativeIcon {...props} />;
-}; 
+}); 

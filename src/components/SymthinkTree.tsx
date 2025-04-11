@@ -8,6 +8,7 @@ import { NavigationProvider, useNavigation } from '../navigation/NavigationConte
 import { useCardAnimation, NavigationItem } from '../hooks/useCardAnimation';
 import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
+import { IconPreloader } from './IconPreloader';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -376,6 +377,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   return (
     <View style={styles.container}>
+      <IconPreloader />
       {renderBackButton()}
       {renderSharedElement()}
       
