@@ -118,6 +118,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   }, [data?.support, change]);
 
   const onItemSelectionChange = (selected: boolean) => {
+    if (!parentDoc) return;
     if (selected) {
       parentDoc.state$.next(StateEnum.Editing);
     } else {
@@ -216,7 +217,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
       flex: 1,
       backgroundColor: colors.background || '#ffffff',
       minHeight: 300, // Ensure the container has a minimum height
-      padding: 16,
+      padding: 0,
     },
     item: {
       // marginBottom: 8,

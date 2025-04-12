@@ -25,7 +25,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   const { colors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const itemRef = useRef<TouchableOpacity>(null);
-  
+
   const isEditable = !!(item.selected && canEdit);
   const hasChildSupports = item.support && item.support.length > 0;
 
@@ -36,18 +36,18 @@ export const SupportItem: React.FC<SupportItemProps> = ({
         const rect = e.target.getBoundingClientRect();
         const scrollX = window.scrollX || window.pageXOffset;
         const scrollY = window.scrollY || window.pageYOffset;
-        
+
         // Get the container's position to calculate relative coordinates
         const container = e.target.closest('[data-testid="card-container"]');
         const containerRect = container?.getBoundingClientRect();
-        
+
         const relativeRect = new DOMRect(
           rect.x - (containerRect?.x || 0),
           rect.y - (containerRect?.y || 0),
           rect.width,
           rect.height
         );
-        
+
         onItemClick(item, e, relativeRect);
       } else {
         // For native, we need to measure the view
@@ -96,45 +96,33 @@ export const SupportItem: React.FC<SupportItemProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      padding: 8,
-      paddingStart: 0,
-      paddingEnd: 10,
-      marginVertical: 4,
-      backgroundColor: item.selected ? colors.selected : colors.background,
-      flexDirection: 'row',
-      alignItems: 'flex-start',
+      ...globalStyles.listItemRow,
+      backgroundColor: colors.background,
     },
     hovered: {
       backgroundColor: '#f5f5f5',
     },
-    bulletContainer: {
-      width: 24,
-      height: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
+    bulletWithKids: {
+      ...globalStyles.listItemIcon,
+      color: colors.link,
     },
-    bulletSolid: {
-      fontSize: 10,
-      width: 10,
-      height: 10,
-      marginTop: 8,
+    bulletNoKids: {
+      ...globalStyles.listItemIcon,
       color: colors.text,
+      opacity: 0.5,
     },
-    bulletHollow: {
-      fontSize: 15,
-      width: 15,
-      height: 15,
-      marginLeft: -2,
-      marginRight: 13,
-      color: colors.text,
+    numbersWithKids: {
+      ...globalStyles.listItemIcon,
+      color: colors.link,
+      fontSize: 14,
+      fontWeight: 'bold',
     },
-    numericBullet: {
-      fontSize: 15,
-      width: 15,
-      height: 15,
-      marginLeft: -2,
-      marginRight: 13,
+    numbersNoKids: {
+      ...globalStyles.listItemIcon,
       color: colors.text,
+      opacity: 0.5,
+      fontSize: 14,
+      fontWeight: 'bold',
     },
     text: {
       ...globalStyles.text,
@@ -150,39 +138,41 @@ export const SupportItem: React.FC<SupportItemProps> = ({
 
   const renderBullet = () => {
     if (item.parent?.numeric) {
-      const bullet = Bullets[index+1] || Bullets[0];
-      return (
-        <Text style={styles.numericBullet}>
-          {hasChildSupports ? bullet.full : bullet.circ}
+      return hasChildSupports ? (
+        <Text style={styles.numbersWithKids}>
+          {index + 1}
+        </Text>
+      ) : (
+        <Text style={styles.numbersNoKids}>
+          {index + 1}
         </Text>
       );
     } else {
       return hasChildSupports ? (
-        <Text style={styles.bulletSolid}>
-          {Bullets[0].full}
+        <Text style={styles.bulletWithKids}>
+          &#9679;
         </Text>
       ) : (
-        <Text style={styles.bulletHollow}>
-          {Bullets[0].circ}
+        <Text style={styles.bulletNoKids}>
+          &#9679;
         </Text>
       );
     }
   };
-  
+
   return (
     <TouchableOpacity
       ref={itemRef}
       style={[
         styles.container,
-        isHovered && canEdit && !item.selected ? styles.hovered : null
       ]}
       onPress={handleClick}
       {...hoverProps}
     >
-      <View style={globalStyles.listItemIconContainer}>
+      <View style={[globalStyles.listItemIconContainer, { justifyContent: 'flex-start' }]}>
         {renderBullet()}
       </View>
-      
+
       {isEditable ? (
         <TextEditor
           item={item}

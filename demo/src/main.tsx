@@ -60,7 +60,7 @@ const App = () => {
     <ThemeProvider>
       <div style={{
         maxWidth: '900px',
-        padding: '16px',
+        padding: '0',
         margin: '0 auto',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
       }}>
@@ -90,10 +90,10 @@ const App = () => {
         </div>
         <hr />
         <div id="demo-container" style={{
-          width: '375px',
+          width: '100%',
+          maxWidth: '375px',
           padding: '0',
-          margin: '0 auto',
-          border: '1px solid red'
+          margin: '0',
         }}>
           {(canEdit && canGoBack) && (
             <div style={{

@@ -40,11 +40,24 @@ export const globalStyles = StyleSheet.create({
     fontFamily: 'Sympunk, Comfortaa, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     fontSize: 24,
   },
+  listItemRow: {
+    padding: 4,
+    paddingStart: 8,
+    paddingEnd: 10,
+    marginVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   listItemIconContainer: {
     width: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  listItemIcon: {
+    fontSize: 11,
+    marginTop: 6,
+    marginRight: 6,
+  }
   
 }); 

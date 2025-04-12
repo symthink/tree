@@ -97,12 +97,8 @@ export const CardItem: React.FC<CardItemProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      backgroundColor: item.selected && canEdit ? '#e8f4ff' : colors.background,
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      padding: 8,
-      paddingStart: 0,
-      paddingEnd: 10,
+      ...globalStyles.listItemRow,
+      backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
@@ -139,13 +135,10 @@ export const CardItem: React.FC<CardItemProps> = ({
       justifyContent: 'flex-end',
     },
     backButtonContainer: {
-      width: 32,
-      height: 32,
-      marginRight: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.primary + '20', // 20% opacity
-      borderRadius: 16,
+      ...globalStyles.listItemIconContainer,
+      margin: 'auto',
+      marginRight: 4,
+      marginLeft: -4,
     },
     contentContainer: {
       flex: 1,
@@ -188,8 +181,8 @@ export const CardItem: React.FC<CardItemProps> = ({
       ) : (
         <>
           {showBackButton && (
-            <View style={globalStyles.listItemIconContainer}>
-              <Icon name="chevron-left" size={24} color={colors.text} />
+            <View style={styles.backButtonContainer}>
+              <Icon name="chevron-left" size={26} color={colors.link} />
             </View>
           )}
           {!showBackButton && (

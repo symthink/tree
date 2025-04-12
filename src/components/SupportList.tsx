@@ -41,13 +41,14 @@ export const SupportList: React.FC<SupportListProps> = ({
     }
   });
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item, index }: { item: any, index: number }) => (
     <SupportItem
       item={item}
       canEdit={canEdit}
       onItemClick={onItemClick}
       onTextChange={onTextChange}
       onKeyAction={onKeyAction}
+      index={index}
     />
   );
 

@@ -5,6 +5,7 @@ export type ThemeType = 'light' | 'dark';
 export interface ThemeColors {
   background: string;
   text: string;
+  link: string;
   selected: string;
   primary: string;
   secondary: string;
@@ -21,6 +22,7 @@ const themes: Record<ThemeType, ThemeColors> = {
   light: {
     background: '#FFFFFF',
     text: '#333333',
+    link: '#0000FF',
     selected: '#E5E5E5',
     primary: '#4A90E2',
     secondary: '#5AC8FA',
@@ -29,6 +31,7 @@ const themes: Record<ThemeType, ThemeColors> = {
   dark: {
     background: '#1A1A1A',
     text: '#F5F5F5',
+    link: '#0000FF',
     selected: '#444444',
     primary: '#5AC8FA',
     secondary: '#4A90E2',

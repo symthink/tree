@@ -364,13 +364,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     return (
       <View style={styles.container}>
         <Text>No visible items</Text>
-        {/* <CardContainer
-          data={currentItem || contextStack[0]}
-          canEdit={canEdit}
-          notify={notifyRef.current}
-          onItemAction={handleItemAction}
-          onDocAction={handleDocAction}
-        /> */}
       </View>
     );
   }
