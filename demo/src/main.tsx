@@ -91,7 +91,6 @@ const App = () => {
         <hr />
         <div id="demo-container" style={{
           width: '100%',
-          maxWidth: '375px',
           padding: '0',
           margin: '0',
         }}>

@@ -9,6 +9,7 @@ import { useCardAnimation, NavigationItem } from '../hooks/useCardAnimation';
 import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
 import { IconPreloader } from './IconPreloader';
+import { SharedElement } from './SharedElement';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -411,6 +412,18 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           </Animated.View>
         );
       })}
+
+      {/* Add SharedElement at root level */}
+      <SharedElement
+        isVisible={!!selectedItemRef.current}
+        initialRect={new DOMRect(
+          selectedItemPosition.current.x,
+          selectedItemPosition.current.y,
+          selectedItemPosition.current.width,
+          selectedItemPosition.current.height
+        )}
+        item={selectedItemRef.current}
+      />
     </View>
   );
 }; 

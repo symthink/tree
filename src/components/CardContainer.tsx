@@ -6,6 +6,8 @@ import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
 import { Subject } from 'rxjs';
 import { StateEnum } from '../core/symthink.class';
+import { SharedElement } from './SharedElement';
+import { ANIMATION_CONFIG } from '../constants/animation';
 
 interface CardContainerProps {
   data: any; // Replace with proper type when migrating core classes
@@ -32,6 +34,10 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   const listRef = useRef<View>(null);
   const [sourceList, setSourceList] = useState<any[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
+  const [sharedElementRect, setSharedElementRect] = useState<DOMRect | undefined>();
+  const [isSharedElementVisible, setIsSharedElementVisible] = useState(false);
+  const [sharedElementItem, setSharedElementItem] = useState<any>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (notify) {
@@ -184,11 +190,24 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   const handleSupportItemClick = (item: any, event: any, itemDomrect?: DOMRect) => {
+    console.log('Support item clicked:', item, itemDomrect);
     if (item.url) {
       onItemAction?.({ action: 'subcription-clicked', value: item.url });
     } else if (parentDoc.state$.getValue() === StateEnum.Viewing) {
       if (item.isKidEnabled()) {
         parentDoc.deselect();
+        if (itemDomrect) {
+          console.log('Setting shared element state:', {
+            rect: itemDomrect,
+            item: item
+          });
+          setSharedElementRect(itemDomrect);
+          setSharedElementItem(item);
+          setIsSharedElementVisible(true);
+          setIsTransitioning(true);
+          
+          // Removed the timeout that hides the shared element
+        }
         onItemAction?.({
           action: 'support-clicked',
           value: item,
@@ -198,6 +217,10 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         item.select$.next(true);
       }
     }
+  };
+
+  const handleSharedElementComplete = () => {
+    console.log('Shared element animation complete');
   };
 
   const isTouchDevice = () => {
