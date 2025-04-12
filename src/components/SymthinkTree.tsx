@@ -378,8 +378,8 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   return (
     <View style={styles.container}>
       <IconPreloader />
-      {renderBackButton()}
-      {renderSharedElement()}
+      {/* {renderBackButton()}
+      {renderSharedElement()} */}
       
       {visibleItems.map((item, index) => {
         const itemId = item.data?.id || `item-${index}`;

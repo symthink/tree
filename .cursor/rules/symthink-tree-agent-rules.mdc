@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# About SymthinkTree
+
+This is a React component library intended for developers to include in their web or native apps. The SymthinkTree component is a UI for navigating a specific tree structured data schema.
+
+- @main.tsx web demo app for testing SymthinkTree component
+- [SymthinkTree.tsx](mdc:src/components/SymthinkTree.tsx) main entry component. All other library components are dependencies of this one and not intended to be directly exposed to the developer.
+- [symthink.class.ts](mdc:src/core/symthink.class.ts) has the classes and interfaces representing the tree data structure used by the SymthinkTree component.

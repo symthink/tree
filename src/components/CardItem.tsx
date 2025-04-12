@@ -7,6 +7,7 @@ import { ExpandButton } from './ExpandButton';
 import { ItemOptions } from './ItemOptions';
 import { TextEditor } from './TextEditor';
 import { globalStyles } from '../theme/globalStyles';
+import { Icon } from './Icon';
 
 interface CardItemProps {
   item: any; // Replace with proper type when migrating core classes
@@ -18,6 +19,7 @@ interface CardItemProps {
   onExpandClick?: (item: any) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
+  showBackButton?: boolean;
 }
 
 export const CardItem: React.FC<CardItemProps> = ({
@@ -30,6 +32,7 @@ export const CardItem: React.FC<CardItemProps> = ({
   onExpandClick,
   onTextChange,
   onKeyAction,
+  showBackButton = false,
 }) => {
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
@@ -37,6 +40,7 @@ export const CardItem: React.FC<CardItemProps> = ({
 
   const isVoting = parentDoc?.state$?.getValue() === 'Voting';
   const isEditable = !!(item.selected && canEdit);
+  const isViewing = parentDoc?.state$?.getValue() === 'Viewing';
 
   const renderLabel = (txt?: string) => {
     if (!txt) return null;
@@ -63,9 +67,6 @@ export const CardItem: React.FC<CardItemProps> = ({
   };
 
   const handleItemClick = (e: any) => {
-    if (parentDoc.state$.getValue() !== 'Viewing') {
-      return;
-    }
     
     item.select$.next(true);
     onItemClick?.(item, e);
@@ -96,8 +97,14 @@ export const CardItem: React.FC<CardItemProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      marginBottom: 8,
       backgroundColor: item.selected && canEdit ? '#e8f4ff' : colors.background,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      padding: 8,
+      paddingStart: 0,
+      paddingEnd: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
     },
     hovered: {
       backgroundColor: '#f5f5f5',
@@ -131,6 +138,28 @@ export const CardItem: React.FC<CardItemProps> = ({
       flexDirection: 'row',
       justifyContent: 'flex-end',
     },
+    backButtonContainer: {
+      width: 32,
+      height: 32,
+      marginRight: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.primary + '20', // 20% opacity
+      borderRadius: 16,
+    },
+    contentContainer: {
+      flex: 1,
+    },
+  });
+
+  // Debug logging
+  console.log('CardItem debug:', {
+    showBackButton,
+    isViewing,
+    isEditable,
+    state: parentDoc?.state$?.getValue(),
+    isRoot: item?.isRoot,
+    canEdit
   });
 
   return (
@@ -158,7 +187,18 @@ export const CardItem: React.FC<CardItemProps> = ({
         </View>
       ) : (
         <>
-          <View style={{ flex: 1 }}>
+          {showBackButton && (
+            <View style={globalStyles.listItemIconContainer}>
+              <Icon name="chevron-left" size={24} color={colors.text} />
+            </View>
+          )}
+          {!showBackButton && (
+            <View style={globalStyles.listItemIconContainer}>
+              <Text>&nbsp;</Text>
+            </View>
+          )}
+
+          <View style={styles.contentContainer}>
             {item.label && <Text style={styles.title}>{item.label}</Text>}
             <Text style={item.hasItemText() ? styles.text : styles.placeholder}>
               {item.getCurrentItemText() || textPlaceholder()}
@@ -175,9 +215,6 @@ export const CardItem: React.FC<CardItemProps> = ({
               </View>
             )}
           </View>
-          {/* {canEdit && (
-            <ItemOptions item={item} onOptionsClick={handleOptionsClick} />
-          )} */}
         </>
       )}
     </TouchableOpacity>

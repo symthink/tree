@@ -251,8 +251,9 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         onItemClick={handleMainItemClick}
         onOptionsClick={handleMainItemOptionsClick}
         onExpandClick={mainItemEditFullClick}
-        onTextChange={() => modified()}
+        onTextChange={modified}
         onKeyAction={handleKeyAction}
+        showBackButton={!data.isRoot && !canEdit}
       />
     );
   };
@@ -264,7 +265,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
       <SupportList
         items={data.support || []}
         canEdit={canEdit}
-        parentDoc={parentDoc}
         onItemClick={handleSupportItemClick}
         onTextChange={() => modified()}
         onKeyAction={handleKeyAction}

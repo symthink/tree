@@ -3,23 +3,24 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, findNodeHandle, UIM
 import { useTheme } from '../theme/ThemeContext';
 import { TextEditor } from './TextEditor';
 import { globalStyles } from '../theme/globalStyles';
+import { Bullets, Symthink } from '../core/symthink.class';
 
 interface SupportItemProps {
-  item: any; // Replace with proper type
+  item: Symthink; // Replace with proper type
   canEdit?: boolean;
-  parentDoc?: any; // Replace with proper type
   onItemClick?: (item: any, event: any, domrect?: DOMRect) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
+  index?: number; // Add index prop
 }
 
 export const SupportItem: React.FC<SupportItemProps> = ({
   item,
   canEdit = false,
-  parentDoc,
   onItemClick,
   onTextChange,
   onKeyAction,
+  index = 0, // Default to 0 if not provided
 }) => {
   const { colors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -96,6 +97,8 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   const styles = StyleSheet.create({
     container: {
       padding: 8,
+      paddingStart: 0,
+      paddingEnd: 10,
       marginVertical: 4,
       backgroundColor: item.selected ? colors.selected : colors.background,
       flexDirection: 'row',
@@ -104,9 +107,33 @@ export const SupportItem: React.FC<SupportItemProps> = ({
     hovered: {
       backgroundColor: '#f5f5f5',
     },
-    bullet: {
-      marginRight: 8,
-      fontSize: 16,
+    bulletContainer: {
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bulletSolid: {
+      fontSize: 10,
+      width: 10,
+      height: 10,
+      marginTop: 8,
+      color: colors.text,
+    },
+    bulletHollow: {
+      fontSize: 15,
+      width: 15,
+      height: 15,
+      marginLeft: -2,
+      marginRight: 13,
+      color: colors.text,
+    },
+    numericBullet: {
+      fontSize: 15,
+      width: 15,
+      height: 15,
+      marginLeft: -2,
+      marginRight: 13,
       color: colors.text,
     },
     text: {
@@ -120,6 +147,27 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       flex: 1,
     }
   });
+
+  const renderBullet = () => {
+    if (item.parent?.numeric) {
+      const bullet = Bullets[index+1] || Bullets[0];
+      return (
+        <Text style={styles.numericBullet}>
+          {hasChildSupports ? bullet.full : bullet.circ}
+        </Text>
+      );
+    } else {
+      return hasChildSupports ? (
+        <Text style={styles.bulletSolid}>
+          {Bullets[0].full}
+        </Text>
+      ) : (
+        <Text style={styles.bulletHollow}>
+          {Bullets[0].circ}
+        </Text>
+      );
+    }
+  };
   
   return (
     <TouchableOpacity
@@ -131,9 +179,9 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       onPress={handleClick}
       {...hoverProps}
     >
-      <Text style={styles.bullet}>
-        {hasChildSupports ? '•' : '○'}
-      </Text>
+      <View style={globalStyles.listItemIconContainer}>
+        {renderBullet()}
+      </View>
       
       {isEditable ? (
         <TextEditor

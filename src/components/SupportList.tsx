@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { SupportItem } from './SupportItem';
+import { Symthink } from '../core/symthink.class';
 
 interface SupportListProps {
   items: any[]; // Replace with proper type
   canEdit?: boolean;
-  parentDoc?: any; // Replace with proper type
   onItemClick?: (item: any, event: any, domrect?: DOMRect) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
@@ -15,7 +15,6 @@ interface SupportListProps {
 export const SupportList: React.FC<SupportListProps> = ({
   items = [],
   canEdit = false,
-  parentDoc,
   onItemClick,
   onTextChange,
   onKeyAction,
@@ -24,7 +23,7 @@ export const SupportList: React.FC<SupportListProps> = ({
   
   const styles = StyleSheet.create({
     container: {
-      marginTop: 16,
+      marginTop: 0,
     },
     header: {
       fontSize: 16,
@@ -46,7 +45,6 @@ export const SupportList: React.FC<SupportListProps> = ({
     <SupportItem
       item={item}
       canEdit={canEdit}
-      parentDoc={parentDoc}
       onItemClick={onItemClick}
       onTextChange={onTextChange}
       onKeyAction={onKeyAction}
