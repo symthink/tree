@@ -18,6 +18,7 @@ export const SharedElement: React.FC<SharedElementProps> = ({
   const { colors } = useTheme();
   const translateY = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const startAnimation = useCallback(() => {
     if (!initialRect || isAnimating.current) return;
@@ -25,20 +26,31 @@ export const SharedElement: React.FC<SharedElementProps> = ({
     isAnimating.current = true;
     translateY.setValue(initialRect.y);
 
+    // Clear any existing animation
+    if (animationRef.current) {
+      animationRef.current.stop();
+    }
+
     const timeoutId = setTimeout(() => {
-      Animated.timing(translateY, {
+      animationRef.current = Animated.timing(translateY, {
         toValue: 0,
-        duration: 300,
+        duration: 400,
         useNativeDriver: true,
-      }).start(() => {
-        isAnimating.current = false;
-        onAnimationComplete?.();
+      });
+
+      animationRef.current.start(({ finished }) => {
+        if (finished) {
+          isAnimating.current = false;
+          onAnimationComplete?.();
+        }
       });
     }, 50);
 
     return () => {
       clearTimeout(timeoutId);
-      translateY.stopAnimation();
+      if (animationRef.current) {
+        animationRef.current.stop();
+      }
       isAnimating.current = false;
     };
   }, [initialRect, translateY, onAnimationComplete]);
