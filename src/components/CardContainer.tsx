@@ -6,8 +6,6 @@ import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
 import { Subject } from 'rxjs';
 import { StateEnum } from '../core/symthink.class';
-import { SharedElement } from './SharedElement';
-import { ANIMATION_CONFIG } from '../constants/animation';
 
 interface CardContainerProps {
   data: any; // Replace with proper type when migrating core classes

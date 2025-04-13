@@ -6,42 +6,48 @@ import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
 
 interface SharedElementProps {
-  isVisible: boolean;
   initialRect?: DOMRect;
   item?: any; // The clicked support item
   onAnimationComplete?: () => void;
 }
 
 export const SharedElement: React.FC<SharedElementProps> = ({
-  isVisible,
   initialRect,
   item,
   onAnimationComplete,
 }) => {
-  console.log('SharedElement render:', { isVisible, initialRect, item });
-  
+  console.log('SharedElement render:', { initialRect, item });
+
   const { colors } = useTheme();
-  const position = useRef(new Animated.ValueXY()).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(1)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  // const position = useRef(new Animated.ValueXY()).current;
+  // const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    console.log('SharedElement useEffect:', { isVisible, initialRect });
-    if (!initialRect) return;
+    console.log('SharedElement useEffect:', { initialRect });
+    if (!initialRect) throw new Error('initialRect is required');
 
-    if (isVisible) {
-      // Set position immediately without animation
-      position.setValue({
-        x: 0,
-        y: initialRect.y,
+    // Set position immediately without animation
+    translateY.setValue(initialRect.y);
+
+    // Start animation after a short delay to ensure the element is mounted
+    const timeoutId = setTimeout(() => {
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        onAnimationComplete?.();
       });
-      opacity.setValue(1);
-    } else {
-      // Keep position and visibility even when not visible
-      position.setValue({ x: initialRect.x, y: initialRect.y });
-      opacity.setValue(1);
-    }
-  }, [isVisible, initialRect]);
+    }, 50);
+
+    // Cleanup function
+    return () => {
+      clearTimeout(timeoutId);
+      translateY.stopAnimation();
+    };
+  }, [initialRect, onAnimationComplete]);
+
 
   const styles = StyleSheet.create({
     container: {
@@ -75,8 +81,8 @@ export const SharedElement: React.FC<SharedElementProps> = ({
     },
   });
 
-  if (!isVisible || !initialRect || !item) {
-    console.log('SharedElement not rendering:', { isVisible, initialRect, item });
+  if (!initialRect || !item) {
+    console.log('SharedElement not rendering:', { initialRect, item });
     return null;
   }
 
@@ -93,18 +99,17 @@ export const SharedElement: React.FC<SharedElementProps> = ({
         styles.container,
         {
           transform: [
-            { translateX: position.x },
-            { translateY: position.y },
-            { scale: scale },
+            // { translateX: position.x },
+            { translateY },
           ],
-          opacity,
+          // opacity,
         },
       ]}
     >
       <View style={styles.content}>
-      <View style={styles.backButtonContainer}>
-              <Icon name="chevron-left" size={26} color={colors.link} />
-            </View>
+        <View style={styles.backButtonContainer}>
+          <Icon name="chevron-left" size={26} color={colors.link} />
+        </View>
         <Text style={styles.text}>{item.text || "Add supporting idea..."}</Text>
       </View>
     </Animated.View>

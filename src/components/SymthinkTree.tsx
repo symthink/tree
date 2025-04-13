@@ -74,9 +74,8 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const notifyRef = useRef<Subject<string>>(new Subject<string>());
   const selectedItemRef = useRef<any>(null);
   const selectedItemPosition = useRef<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
-  const sharedElementOpacity = useRef(new Animated.Value(0)).current;
   const sharedElementPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
-  const sharedElementScale = useRef(new Animated.Value(1)).current;
+  const [showSharedElement, setShowSharedElement] = useState(false);
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {
@@ -153,13 +152,13 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           width: action.domrect.width,
           height: action.domrect.height
         };
+        setShowSharedElement(true);
         
         // Set initial position and opacity
         sharedElementPosition.setValue({
           x: action.domrect.x,
           y: action.domrect.y
         });
-        sharedElementOpacity.setValue(1);
       }
       
       const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
@@ -284,33 +283,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     );
   };
 
-  const renderSharedElement = () => {
-    // Only render the shared element during transitions
-    if (!selectedItemRef.current) return null;
-
-    return (
-      <Animated.View
-        style={[
-          styles.sharedElement,
-          {
-            opacity: sharedElementOpacity,
-            transform: [
-              { translateX: sharedElementPosition.x },
-              { translateY: sharedElementPosition.y },
-              { scale: sharedElementScale },
-            ],
-            width: selectedItemPosition.current.width,
-            minHeight: selectedItemPosition.current.height,
-          },
-        ]}
-      >
-        <Text style={styles.sharedElementText}>
-          {selectedItemRef.current.text || "Supporting idea"}
-        </Text>
-      </Animated.View>
-    );
-  };
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -368,7 +340,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       </View>
     );
   }
-
+  console.log('showSharedElement', showSharedElement);
   return (
     <View style={styles.container}>
       <IconPreloader />
@@ -414,16 +386,17 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       })}
 
       {/* Add SharedElement at root level */}
-      <SharedElement
-        isVisible={!!selectedItemRef.current}
+      {showSharedElement && (
+        <SharedElement
         initialRect={new DOMRect(
           selectedItemPosition.current.x,
           selectedItemPosition.current.y,
           selectedItemPosition.current.width,
           selectedItemPosition.current.height
         )}
-        item={selectedItemRef.current}
-      />
+          item={selectedItemRef.current}
+        />
+      )}
     </View>
   );
 }; 
