@@ -40,7 +40,8 @@ export const useCardAnimation = (width: number, handlers?: AnimationHandlers) =>
     // Create new animation values
     const state: AnimationState = {
       position: new Animated.ValueXY(index === 0 ? { x: 0, y: 0 } : { x: width, y: 0 }),
-      opacity: new Animated.Value(index === 0 ? 1 : 0),
+      // opacity: new Animated.Value(index === 0 ? 1 : 0),
+      opacity: new Animated.Value(1),
       scale: new Animated.Value(1),
       zIndex: index + 1,
       itemRef: createRef<View>(),
@@ -111,6 +112,9 @@ export const useCardAnimation = (width: number, handlers?: AnimationHandlers) =>
       newCard.animation.position.setValue({ x: width, y: 0 });
       newCard.animation.opacity.setValue(0);
       
+      // Set outgoing card's opacity immediately
+      currentCard.animation.opacity.setValue(0.5);
+      
       if (!shouldEnableAnimations()) {
         debug('Skipping card transition (disabled)');
         currentCard.animation.position.setValue({ x: -width, y: 0 });
@@ -138,7 +142,7 @@ export const useCardAnimation = (width: number, handlers?: AnimationHandlers) =>
       Animated.parallel([
         createSlideAnimation(currentCard.animation, { x: -width, y: 0 }, ANIMATION_CONFIG.FORWARD),
         createSlideAnimation(newCard.animation, { x: 0, y: 0 }, ANIMATION_CONFIG.FORWARD),
-        createFadeAnimation(newCard.animation, 1, ANIMATION_CONFIG.FORWARD)
+        createFadeAnimation(newCard.animation, 1, ANIMATION_CONFIG.FORWARD) // Only fade in the new card
       ]).start((result) => {
         debug('Card transition completed', { success: result.finished });
         if (result.finished) {
