@@ -59,7 +59,6 @@ const App = () => {
 
   return (
     <ThemeProvider>
-      <AnimationProvider>
         <div style={{
           maxWidth: '900px',
           padding: '0',
@@ -136,7 +135,6 @@ const App = () => {
           }}>
           </footer>
         </div>
-      </AnimationProvider>
     </ThemeProvider>
   );
 };
