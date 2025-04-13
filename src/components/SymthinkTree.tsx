@@ -153,12 +153,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           height: action.domrect.height
         };
         setShowSharedElement(true);
-        
-        // Set initial position and opacity
-        sharedElementPosition.setValue({
-          x: action.domrect.x,
-          y: action.domrect.y
-        });
       }
       
       const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
@@ -167,6 +161,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       if (!currentCard) {
         console.error('Could not find current card for animation');
         setAnimating(false);
+        setShowSharedElement(false);
         return;
       }
       
@@ -189,6 +184,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       
       animateCardTransition(currentCard, newCard, () => {
         setAnimating(false);
+        setShowSharedElement(false);
       });
     }
   };
@@ -385,16 +381,18 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
         );
       })}
 
-      {/* Add SharedElement at root level */}
       {showSharedElement && (
         <SharedElement
-        initialRect={new DOMRect(
-          selectedItemPosition.current.x,
-          selectedItemPosition.current.y,
-          selectedItemPosition.current.width,
-          selectedItemPosition.current.height
-        )}
+          initialRect={new DOMRect(
+            selectedItemPosition.current.x,
+            selectedItemPosition.current.y,
+            selectedItemPosition.current.width,
+            selectedItemPosition.current.height
+          )}
           item={selectedItemRef.current}
+          onAnimationComplete={() => {
+            setShowSharedElement(false);
+          }}
         />
       )}
     </View>

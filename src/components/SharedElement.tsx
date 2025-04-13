@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Animated, View, StyleSheet, Dimensions, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { ANIMATION_CONFIG } from '../constants/animation';
@@ -16,38 +16,37 @@ export const SharedElement: React.FC<SharedElementProps> = ({
   item,
   onAnimationComplete,
 }) => {
-  console.log('SharedElement render:', { initialRect, item });
-
   const { colors } = useTheme();
   const translateY = useRef(new Animated.Value(0)).current;
-  // const position = useRef(new Animated.ValueXY()).current;
-  // const opacity = useRef(new Animated.Value(0)).current;
+  const isAnimating = useRef(false);
 
-  useEffect(() => {
-    console.log('SharedElement useEffect:', { initialRect });
-    if (!initialRect) throw new Error('initialRect is required');
-
-    // Set position immediately without animation
+  const startAnimation = useCallback(() => {
+    if (!initialRect || isAnimating.current) return;
+    
+    isAnimating.current = true;
     translateY.setValue(initialRect.y);
 
-    // Start animation after a short delay to ensure the element is mounted
     const timeoutId = setTimeout(() => {
       Animated.timing(translateY, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start(() => {
+        isAnimating.current = false;
         onAnimationComplete?.();
       });
     }, 50);
 
-    // Cleanup function
     return () => {
       clearTimeout(timeoutId);
       translateY.stopAnimation();
+      isAnimating.current = false;
     };
-  }, [initialRect, onAnimationComplete]);
+  }, [initialRect, translateY, onAnimationComplete]);
 
+  useEffect(() => {
+    return startAnimation();
+  }, [startAnimation]);
 
   const styles = StyleSheet.create({
     container: {
@@ -82,16 +81,8 @@ export const SharedElement: React.FC<SharedElementProps> = ({
   });
 
   if (!initialRect || !item) {
-    console.log('SharedElement not rendering:', { initialRect, item });
     return null;
   }
-
-  console.log('SharedElement dimensions:', {
-    width: initialRect.width,
-    height: initialRect.height,
-    x: initialRect.x,
-    y: initialRect.y
-  });
 
   return (
     <Animated.View
@@ -99,10 +90,8 @@ export const SharedElement: React.FC<SharedElementProps> = ({
         styles.container,
         {
           transform: [
-            // { translateX: position.x },
             { translateY },
           ],
-          // opacity,
         },
       ]}
     >
