@@ -10,7 +10,6 @@ import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
 import { IconPreloader } from './IconPreloader';
 import { SharedElement } from './SharedElement';
-import { useAnimation } from '../animation/AnimationContext';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -68,8 +67,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 }) => {
   const { colors } = useTheme();
   const { width } = Dimensions.get('window');
-  const { navigationStack: contextStack, currentItem, pushItem, popItem } = useNavigation();
-  const { state: animationState, dispatch: animationDispatch } = useAnimation();
+  const { navigationStack: contextStack, currentItem, pushItem, popItem, isAnimating, setAnimating } = useNavigation();
   
   // Replace useRef with useState for animated items
   const [animatedItems, setAnimatedItems] = useState<Map<string, NavigationItem>>(new Map());
@@ -80,13 +78,13 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {
-      animationDispatch({ type: 'START_ANIMATION' });
+      // console.log('Animation started');
     },
     onAnimationEnd: () => {
-      animationDispatch({ type: 'COMPLETE_ANIMATION' });
+      // console.log('Animation completed successfully');
     },
     onAnimationCancel: () => {
-      animationDispatch({ type: 'CANCEL_ANIMATION' });
+      // console.log('Animation was cancelled');
     },
   });
 
@@ -139,25 +137,37 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     };
   }, []);
 
-  const handleItemAction = useCallback((action: ItemAction) => {
-    if (action.action === 'support-clicked' && animationState.state === 'IDLE') {
-      const item = action.value;
-      selectedItemRef.current = item;
-      selectedItemPosition.current = action.domrect || { x: 0, y: 0, width: 0, height: 0 };
-      setShowSharedElement(true);
+  const handleItemAction = async (action: ItemAction) => {
+    if (action.action === 'support-clicked' && !isAnimating) {
+      const supportItem = action.value;
+      setAnimating(true);
+      
+      // Set up shared element animation
+      if (action.domrect) {
+        selectedItemRef.current = supportItem;
+        selectedItemPosition.current = {
+          x: action.domrect.x,
+          y: action.domrect.y,
+          width: action.domrect.width,
+          height: action.domrect.height
+        };
+        setShowSharedElement(true);
+      }
       
       const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
       const currentCard = animatedItems.get(currentCardId);
       
       if (!currentCard) {
         console.error('Could not find current card for animation');
+        setAnimating(false);
+        setShowSharedElement(false);
         return;
       }
       
       // Initialize the new card in the animation map before pushing to stack
-      const newCardId = item.id || `item-${contextStack.length}`;
+      const newCardId = supportItem.id || `item-${contextStack.length}`;
       const newCard: NavigationItem = {
-        data: item,
+        data: supportItem,
         animation: createAnimationValues(contextStack.length),
       };
       
@@ -168,54 +178,65 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
         return newMap;
       });
       
-      // Now push the item to the stack and handle the animation
-      void (async () => {
-        try {
-          await pushItem(item);
-          animateCardTransition(currentCard, newCard, () => {
-            animationDispatch({ type: 'COMPLETE_ANIMATION' });
-            setShowSharedElement(false);
-          });
-        } catch (error) {
-          console.error('Error during navigation:', error);
-          animationDispatch({ type: 'CANCEL_ANIMATION' });
-          setShowSharedElement(false);
-        }
-      })();
-    }
-  }, [pushItem, contextStack, animatedItems, createAnimationValues, animateCardTransition, animationState.state]);
-
-  const handleDocAction = useCallback((action: DocAction) => {
-    if (action.action === 'go-back') {
-      if (contextStack.length <= 1 || animationState.state === 'ANIMATING') {
-        return;
-      }
-
-      const stack = Array.from(animatedItems.values());
-      const currentCard = stack[stack.length - 1];
-      const previousCard = stack[stack.length - 2];
-
-      if (!currentCard || !previousCard) {
-        console.warn('Unable to find cards for back navigation');
-        return;
-      }
-
-      animationDispatch({ type: 'START_ANIMATION' });
-      animateBackTransition(currentCard, previousCard, () => {
-        popItem();
-        animationDispatch({ type: 'COMPLETE_ANIMATION' });
-        if (onBackComplete) {
-          onBackComplete();
-        }
+      // Now push the item to the stack
+      await pushItem(supportItem);
+      
+      animateCardTransition(currentCard, newCard, () => {
+        setAnimating(false);
+        setShowSharedElement(false);
       });
     }
-  }, [contextStack.length, animationState.state, popItem, onBackComplete, animatedItems, animateBackTransition]);
+  };
 
   const navigateBack = useCallback(() => {
-    if (canGoBack && animationState.state === 'IDLE' && contextStack.length > 1) {
-      handleDocAction({ action: 'go-back', value: currentItem });
+    if (contextStack.length <= 1 || isAnimating) {
+      return;
     }
-  }, [canGoBack, animationState.state, handleDocAction, contextStack.length, currentItem]);
+    
+    setAnimating(true);
+
+    const stack = Array.from(animatedItems.values());
+    const currentCard = stack[stack.length - 1];
+    const previousCard = stack[stack.length - 2];
+
+    if (!currentCard || !previousCard) {
+      console.warn('Unable to find cards for back navigation');
+      setAnimating(false);
+      return;
+    }
+
+    // Clean up the current card after animation
+    const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
+
+    animateBackTransition(currentCard, previousCard, () => {
+      // Remove the item from navigation context after animation completes
+      popItem();
+      
+      // Clean up the animated item
+      setAnimatedItems(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(currentCardId);
+        return newMap;
+      });
+      
+      setAnimating(false);
+      onBackComplete?.();
+    });
+  }, [contextStack.length, isAnimating, setAnimating, popItem, width, onBackComplete, animatedItems, animateBackTransition]);
+
+  // Add effect to handle canGoBack prop
+  useEffect(() => {
+    if (canGoBack && !isAnimating && contextStack.length > 1) {
+      navigateBack();
+    }
+  }, [canGoBack, isAnimating, navigateBack, contextStack.length]);
+
+  const handleDocAction = (action: DocAction) => {
+    // console.log('Doc action:', action);
+    if (action.action === 'go-back') {
+      navigateBack();
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {

@@ -8,7 +8,6 @@ import { SymthinkTree, loadWebFonts } from '../../src';
 import { ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import { AnimationProvider } from '../../src/animation/AnimationContext';
-import { AnimationTest } from '../../src/animation/AnimationTest';
 import data from './mock-data.json';
 
 loadWebFonts();
@@ -67,6 +66,28 @@ const App = () => {
           margin: '0 auto',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
         }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: '20px'
+          }}>
+            <button
+              onClick={() => setCanEdit(!canEdit)}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                backgroundColor: canEdit ? '#dc3545' : '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+            >
+              {canEdit ? 'Disable Editing' : 'Enable Editing'}
+            </button>
+          </div>
+          <hr />
           <div id="demo-container" style={{
             width: '100%',
             padding: '0',
