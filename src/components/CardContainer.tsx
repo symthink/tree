@@ -37,7 +37,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
 
   useEffect(() => {
     if (!data) return;
-    console.log(`CardContainer[${data.id}]: showTopItem`, showTopItem);
+
     const root = data.getRoot();
     setParentDoc(root); // NOTE: this is likely a mistake. fix later
     // Subscribe to state changes
@@ -118,7 +118,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         setChange(prev => !prev);
         break;
       case 'animation-done':
-        console.log('CardContainer: animation-done');
         setShowTopItem(true);
         break;
       default:
@@ -273,7 +272,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     );
   };
 
-  console.log(`CardContainer[${data.id}]: showTopItem`, showTopItem);
   return (
     <View style={styles.container} testID="card-container">
         {renderTopItem()}

@@ -195,7 +195,7 @@ export const CardItem: React.FC<CardItemProps> = ({
           )}
 
           <View style={styles.contentContainer}>
-            {item.label && <Text style={styles.title}>{item.label}</Text>}
+            {item.label && <Text style={globalStyles.label}>{item.label}</Text>}
             <Text style={item.hasItemText() ? styles.text : styles.placeholder}>
               {item.getCurrentItemText() || textPlaceholder()}
             </Text>

@@ -160,6 +160,28 @@ export const SupportItem: React.FC<SupportItemProps> = ({
     }
   };
 
+  const renderItemText = () => {
+    if (item.text && item.text?.indexOf(':') !== -1) {
+      const [label, txt] = item.text.split(':');
+      item.text = txt?.trim() || '';
+      item.label = label?.trim() || '';
+    }
+    if (item.label?.length) {
+      item.label = item.label.charAt(0).toUpperCase() + item.label.slice(1);
+    }
+    let txt = item.label ? item.label + ': ' + item.text?.trim() : item.text?.trim();
+    let label;
+    if (/^[^:]+:/.test(txt)) {
+      let parts = txt.split(':');
+      label = parts.shift();
+      txt = parts.join(':').trim();
+    }
+    return [
+      !!label && <Text style={globalStyles.label}>{label}:</Text>,
+      ' ' + txt,
+    ];
+  }
+
   return (
     <TouchableOpacity
       ref={itemRef}
@@ -184,7 +206,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
         />
       ) : (
         <Text style={item.text ? styles.text : styles.placeholder}>
-          {item.text || "Add supporting idea..."}
+          {renderItemText() || "Add supporting idea..."}
         </Text>
       )}
     </TouchableOpacity>

@@ -313,7 +313,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           <CardContainer
             data={item.data}
             canEdit={canEdit}
-            notify={notify}
             onItemAction={handleItemAction}
             onDocAction={handleDocAction}
           />

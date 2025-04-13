@@ -58,6 +58,12 @@ export const globalStyles = StyleSheet.create({
     fontSize: 11,
     marginTop: 6,
     marginRight: 6,
-  }
+  },
+  label: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    textTransform: 'capitalize',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
   
 }); 

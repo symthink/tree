@@ -22,7 +22,7 @@ export const SharedElement: React.FC<SharedElementProps> = ({
 
   const startAnimation = useCallback(() => {
     if (!initialRect || isAnimating.current) return;
-    
+
     isAnimating.current = true;
     translateY.setValue(initialRect.y);
 
@@ -110,7 +110,10 @@ export const SharedElement: React.FC<SharedElementProps> = ({
         <View style={styles.backButtonContainer}>
           <Icon name="chevron-left" size={26} color={colors.link} />
         </View>
-        <Text style={styles.text}>{item.text || "Add supporting idea..."}</Text>
+        <View style={{ flex: 1 }}>
+          {item.label && <Text style={globalStyles.label}>{item.label}</Text>}
+          <Text style={styles.text}>{item.text || "Add supporting idea..."}</Text>
+        </View>
       </View>
     </Animated.View>
   );
