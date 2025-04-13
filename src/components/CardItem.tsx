@@ -146,14 +146,14 @@ export const CardItem: React.FC<CardItemProps> = ({
   });
 
   // Debug logging
-  console.log('CardItem debug:', {
-    showBackButton,
-    isViewing,
-    isEditable,
-    state: parentDoc?.state$?.getValue(),
-    isRoot: item?.isRoot,
-    canEdit
-  });
+  // console.log('CardItem debug:', {
+  //   showBackButton,
+  //   isViewing,
+  //   isEditable,
+  //   state: parentDoc?.state$?.getValue(),
+  //   isRoot: item?.isRoot,
+  //   canEdit
+  // });
 
   return (
     <TouchableOpacity

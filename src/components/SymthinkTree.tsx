@@ -78,13 +78,13 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {
-      console.log('Animation started');
+      // console.log('Animation started');
     },
     onAnimationEnd: () => {
-      console.log('Animation completed successfully');
+      // console.log('Animation completed successfully');
     },
     onAnimationCancel: () => {
-      console.log('Animation was cancelled');
+      // console.log('Animation was cancelled');
     },
   });
 
@@ -232,7 +232,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   }, [canGoBack, isAnimating, navigateBack, contextStack.length]);
 
   const handleDocAction = (action: DocAction) => {
-    console.log('Doc action:', action);
+    // console.log('Doc action:', action);
     if (action.action === 'go-back') {
       navigateBack();
     }
@@ -288,7 +288,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   // If we have no visible items, render a fallback card container with the current item
   if (visibleItems.length === 0) {
-    console.log('No visible items, rendering fallback with initialData');
+    // console.log('No visible items, rendering fallback with initialData');
     return (
       <View style={styles.container}>
         <Text>No visible items</Text>

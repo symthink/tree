@@ -44,7 +44,7 @@ export const debug = (message: string, data?: any, options: DebugOptions = {}) =
       console.warn(`${prefix} ${message}${logData}`);
       break;
     default:
-      console.log(`${prefix} ${message}${logData}`);
+      // console.log(`${prefix} ${message}${logData}`);
   }
 };
 

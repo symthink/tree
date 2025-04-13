@@ -109,8 +109,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   const onStateChange = (state: string) => {
-    console.log('onStateChange', state);
-    // Closing sliding items would be handled differently in React Native
+    // console.log('onStateChange', state);
     setChange(prev => !prev);
   };
 
@@ -165,7 +164,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   const handleSupportItemClick = (item: any, event: any, itemDomrect?: DOMRect) => {
-    console.log('Support item clicked:', item, itemDomrect);
+    // console.log('Support item clicked:', item, itemDomrect);
     if (item.url) {
       onItemAction?.({ action: 'subcription-clicked', value: item.url });
     } else if (parentDoc.state$.getValue() === StateEnum.Viewing) {
@@ -217,8 +216,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   });
 
   const handleKeyAction = (key: string, type?: string) => {
-    // Handle key actions like Enter key press
-    console.log('Key action:', key, type);
+    // console.log('Key action:', key, type);
   };
 
   // Render methods would go here

@@ -204,7 +204,7 @@ export class Symthink {
             try {
                 this.eventDate = new Date(arg.eventDate * 1000);
             } catch (e) {
-                console.debug(e);
+                /* console.debug(e); */
             }
         }
         if (arg.support) {
@@ -215,7 +215,7 @@ export class Symthink {
             this.source = arg.source;
         }
         if (arg.url) {
-            try { this.url = new URL(arg.url) } catch (e) { console.log('Invalid URL:', e) }
+            try { this.url = new URL(arg.url) } catch (e) { /* console.log('Invalid URL:', e) */ }
         }
     }
 
@@ -654,7 +654,7 @@ ${conclusion}`;
     // Disabled/overwrites any children
     subscribe(doc: SymthinkDocument) {
         if (!doc.url) {
-            console.debug(doc);
+            /* console.debug(doc); */
             throw new Error('Cannot link doc without a url.');
         }
         this.support = undefined;
@@ -755,7 +755,7 @@ export class SymthinkDocument extends Symthink {
                 }
                 return doc.find((c) => c.id === id);
             } catch (e) {
-                console.warn('getSubscriber()', e);
+                /* console.warn('getSubscriber()', e); */
             }
         }
     }
@@ -783,7 +783,7 @@ export class SymthinkDocument extends Symthink {
         this.uid = arg.uid;
         this.timestamp = arg.timestamp;
         if (arg.$chemaver && arg.$chemaver < SCHEMA_VERSION) {
-            console.log('Schema migrate from %s to %s', arg.$chemaver, SCHEMA_VERSION);
+            /* console.log('Schema migrate from %s to %s', arg.$chemaver, SCHEMA_VERSION); */
         }
         if (arg.decisions) {
             this.decisions = arg.decisions;
