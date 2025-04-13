@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { Animated, View, StyleSheet, Dimensions, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
-import { ANIMATION_CONFIG } from '../constants/animation';
 import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
 

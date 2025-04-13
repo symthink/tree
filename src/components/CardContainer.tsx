@@ -4,13 +4,12 @@ import { useTheme } from '../theme/ThemeContext';
 import { CardItem } from './CardItem';
 import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
-import { Subject } from 'rxjs';
 import { StateEnum } from '../core/symthink.class';
+import { useNotificationStore } from '../store/notificationStore';
 
 interface CardContainerProps {
   data: any; // Replace with proper type when migrating core classes
   canEdit?: boolean;
-  notify?: Subject<string>;
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
   onDocAction?: (action: { action: string; value: any }) => void;
 }
@@ -18,23 +17,24 @@ interface CardContainerProps {
 export const CardContainer: React.FC<CardContainerProps> = ({
   data,
   canEdit = false,
-  notify,
   onItemAction,
   onDocAction,
 }) => {
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
+  const subscribe = useNotificationStore(state => state.subscribe);
   
   const [sourceList, setSourceList] = useState<any[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
 
   useEffect(() => {
-    if (notify) {
-      // Handle notification subscription
-      const subscription = notify.subscribe((a: string) => onNotificationReceived(a));
-      return () => subscription.unsubscribe();
-    }
-  }, [notify]);
+    const unsubscribe = subscribe((a: string) => onNotificationReceived(a));
+    console.log('CardContainer: notify subscription');
+    return () => {
+      console.log('CardContainer: notify unsubscription');
+      unsubscribe();
+    };
+  }, [subscribe]);
 
   useEffect(() => {
     if (data) {
@@ -114,6 +114,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   const onNotificationReceived = async (a: string) => {
+    console.log('CardContainer: onNotificationReceived', a);
     // Handle closing sliding items
     switch (a) {
       case 'external-mod':
