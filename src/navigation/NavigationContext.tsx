@@ -21,14 +21,11 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
   initialItem,
   children
 }) => {
-  // console.log('NavigationProvider initializing with item:', initialItem);
-  
   const [navigationStack, setNavigationStack] = useState<any[]>([initialItem]);
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Ensure initialItem is in the stack when it changes
   useEffect(() => {
-    // console.log('initialItem changed, updating stack');
     if (initialItem && (!navigationStack.length || navigationStack[0] !== initialItem)) {
       setNavigationStack([initialItem]);
     }
@@ -37,7 +34,6 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const currentItem = navigationStack[navigationStack.length - 1] || null;
 
   const pushItem = useCallback((item: any): Promise<void> => {
-    // console.log('Pushing item to navigation stack:', item);
     return new Promise(resolve => {
       setNavigationStack(prev => {
         const newStack = [...prev, item];
@@ -48,14 +44,12 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({
   }, []);
 
   const popItem = useCallback(() => {
-    // console.log('Popping item from navigation stack');
     if (navigationStack.length > 1) {
       setNavigationStack(prev => prev.slice(0, -1));
     }
   }, [navigationStack.length]);
 
   const replaceItem = useCallback((item: any) => {
-    // console.log('Replacing current item in navigation stack');
     setNavigationStack(prev => [...prev.slice(0, -1), item]);
   }, []);
 

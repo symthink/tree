@@ -10,6 +10,8 @@ import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
 import { IconPreloader } from './IconPreloader';
 import { SharedElement } from './SharedElement';
+import { useAnimation } from '../animation/AnimationContext';
+import { AnimationProvider } from '../animation/AnimationContext';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -44,13 +46,15 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   });    
 
   return (
-    <NavigationProvider initialItem={doc}>
-      <CardDeckNavigator 
-        canEdit={canEdit} 
-        canGoBack={canGoBack}
-        onBackComplete={onBackComplete}
-      />
-    </NavigationProvider>
+    <AnimationProvider>
+      <NavigationProvider initialItem={doc}>
+        <CardDeckNavigator 
+          canEdit={canEdit} 
+          canGoBack={canGoBack}
+          onBackComplete={onBackComplete}
+        />
+      </NavigationProvider>
+    </AnimationProvider>
   );
 };
 
@@ -67,7 +71,8 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 }) => {
   const { colors } = useTheme();
   const { width } = Dimensions.get('window');
-  const { navigationStack: contextStack, currentItem, pushItem, popItem, isAnimating, setAnimating } = useNavigation();
+  const { navigationStack: contextStack, currentItem, pushItem, popItem } = useNavigation();
+  const { state: animationState, queueAnimation, startAnimation, completeAnimation, cancelAnimation } = useAnimation();
   
   // Replace useRef with useState for animated items
   const [animatedItems, setAnimatedItems] = useState<Map<string, NavigationItem>>(new Map());
@@ -78,15 +83,54 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {
-      // console.log('Animation started');
+      startAnimation('card-transition');
     },
     onAnimationEnd: () => {
-      // console.log('Animation completed successfully');
+      completeAnimation();
     },
     onAnimationCancel: () => {
-      // console.log('Animation was cancelled');
+      cancelAnimation();
     },
   });
+
+  // Ensure animatedItems is in sync with contextStack
+  useEffect(() => {
+    const newAnimatedItems = new Map(animatedItems);
+    let hasChanges = false;
+
+    // Add any missing items from contextStack
+    contextStack.forEach((item, index) => {
+      const id = item.id || `item-${index}`;
+      if (!newAnimatedItems.has(id)) {
+        newAnimatedItems.set(id, {
+          data: item,
+          animation: createAnimationValues(index)
+        });
+        hasChanges = true;
+      }
+    });
+
+    // Remove items that are no longer in contextStack
+    Array.from(newAnimatedItems.keys()).forEach(id => {
+      if (!contextStack.some(item => (item.id || `item-${contextStack.indexOf(item)}`) === id)) {
+        newAnimatedItems.delete(id);
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      setAnimatedItems(newAnimatedItems);
+    }
+  }, [contextStack, createAnimationValues]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      notifyRef.current.complete();
+      cancelAnimation();
+      setAnimatedItems(new Map());
+    };
+  }, [cancelAnimation]);
 
   // Memoize the visible items computation
   const visibleItems = useMemo(() => {
@@ -111,36 +155,10 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     });
   }, [contextStack, animatedItems, createAnimationValues]);
 
-  // Update animated items when visible items change
-  useEffect(() => {
-    const newAnimatedItems = new Map();
-    visibleItems.forEach((item, index) => {
-      const id = item.data.id || `item-${index}`;
-      newAnimatedItems.set(id, item);
-    });
-    
-    // Only update if there are actual changes
-    const currentKeys = Array.from(animatedItems.keys());
-    const newKeys = Array.from(newAnimatedItems.keys());
-    
-    if (currentKeys.length !== newKeys.length || 
-        !currentKeys.every(key => newAnimatedItems.has(key)) ||
-        !newKeys.every(key => animatedItems.has(key))) {
-      setAnimatedItems(newAnimatedItems);
-    }
-  }, [visibleItems, animatedItems]);
-
-  // Clean up the subject when component unmounts
-  useEffect(() => {
-    return () => {
-      notifyRef.current.complete();
-    };
-  }, []);
-
-  const handleItemAction = async (action: ItemAction) => {
-    if (action.action === 'support-clicked' && !isAnimating) {
+  // Memoize the handleItemAction callback
+  const handleItemAction = useCallback(async (action: ItemAction) => {
+    if (action.action === 'support-clicked' && animationState.state !== 'ANIMATING') {
       const supportItem = action.value;
-      setAnimating(true);
       
       // Set up shared element animation
       if (action.domrect) {
@@ -159,10 +177,12 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       
       if (!currentCard) {
         console.error('Could not find current card for animation');
-        setAnimating(false);
         setShowSharedElement(false);
         return;
       }
+      
+      // Queue the animation before pushing to stack
+      queueAnimation('card-transition');
       
       // Initialize the new card in the animation map before pushing to stack
       const newCardId = supportItem.id || `item-${contextStack.length}`;
@@ -182,61 +202,126 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       await pushItem(supportItem);
       
       animateCardTransition(currentCard, newCard, () => {
-        setAnimating(false);
         setShowSharedElement(false);
       });
     }
-  };
+  }, [contextStack, animatedItems, animationState.state, pushItem, queueAnimation, createAnimationValues, animateCardTransition]);
 
+  // Memoize the navigateBack callback
   const navigateBack = useCallback(() => {
-    if (contextStack.length <= 1 || isAnimating) {
+    if (contextStack.length <= 1 || animationState.state === 'ANIMATING') {
       return;
     }
     
-    setAnimating(true);
+    startAnimation('back-transition');
 
-    const stack = Array.from(animatedItems.values());
-    const currentCard = stack[stack.length - 1];
-    const previousCard = stack[stack.length - 2];
+    const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
+    const previousCardId = contextStack[contextStack.length - 2]?.id || `item-${contextStack.length - 2}`;
+    
+    const currentCard = animatedItems.get(currentCardId);
+    const previousCard = animatedItems.get(previousCardId);
 
     if (!currentCard || !previousCard) {
       console.warn('Unable to find cards for back navigation');
-      setAnimating(false);
+      cancelAnimation();
       return;
     }
 
-    // Clean up the current card after animation
-    const currentCardId = contextStack[contextStack.length - 1]?.id || `item-${contextStack.length - 1}`;
-
-    animateBackTransition(currentCard, previousCard, () => {
-      // Remove the item from navigation context after animation completes
-      popItem();
+    // Update z-index for proper layering during animation
+    setAnimatedItems(prev => {
+      const newMap = new Map(prev);
+      const current = newMap.get(currentCardId);
+      const previous = newMap.get(previousCardId);
       
-      // Clean up the animated item
+      if (current && previous) {
+        newMap.set(currentCardId, {
+          ...current,
+          animation: {
+            ...current.animation,
+            zIndex: 2
+          }
+        });
+        newMap.set(previousCardId, {
+          ...previous,
+          animation: {
+            ...previous.animation,
+            zIndex: 1
+          }
+        });
+      }
+      
+      return newMap;
+    });
+    
+    animateBackTransition(currentCard, previousCard, () => {
+      // Remove the current card from animatedItems after animation
       setAnimatedItems(prev => {
         const newMap = new Map(prev);
         newMap.delete(currentCardId);
         return newMap;
       });
       
-      setAnimating(false);
+      // Pop the item from the navigation stack after animation
+      popItem();
+      
+      cancelAnimation();
       onBackComplete?.();
     });
-  }, [contextStack.length, isAnimating, setAnimating, popItem, width, onBackComplete, animatedItems, animateBackTransition]);
+  }, [contextStack.length, animationState.state, startAnimation, popItem, width, onBackComplete, animatedItems, animateBackTransition, cancelAnimation]);
 
   // Add effect to handle canGoBack prop
   useEffect(() => {
-    if (canGoBack && !isAnimating && contextStack.length > 1) {
+    if (canGoBack && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
       navigateBack();
     }
-  }, [canGoBack, isAnimating, navigateBack, contextStack.length]);
+  }, [canGoBack, animationState.state, navigateBack, contextStack.length]);
 
-  const handleDocAction = (action: DocAction) => {
-    // console.log('Doc action:', action);
-    if (action.action === 'go-back') {
+  const handleDocAction = useCallback((action: DocAction) => {
+    if (action.action === 'go-back' && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
       navigateBack();
     }
-  };
+  }, [navigateBack, animationState.state, contextStack.length]);
+
+  // Memoize the render function
+  const renderCards = useCallback(() => {
+    return visibleItems.map((item, index) => {
+      const itemId = item.data?.id || `item-${index}`;
+      const debugStyle = getDebugStyle(debugState[itemId] || 'IDLE');
+      
+      return (
+        <Animated.View
+          key={`card-${index}-${itemId}`}
+          ref={item.animation.itemRef}
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: colors.background,
+              zIndex: item.animation.zIndex,
+              opacity: item.animation.opacity,
+              transform: [
+                { translateX: item.animation.position.x },
+                { translateY: item.animation.position.y },
+                { scale: item.animation.scale }
+              ],
+            },
+            debugStyle
+          ]}
+        >
+          <CardContainer
+            data={item.data}
+            canEdit={canEdit}
+            notify={notifyRef.current}
+            onItemAction={handleItemAction}
+            onDocAction={handleDocAction}
+          />
+        </Animated.View>
+      );
+    });
+  }, [visibleItems, debugState, getDebugStyle, colors.background, canEdit, handleItemAction, handleDocAction]);
 
   const styles = StyleSheet.create({
     container: {
@@ -286,59 +371,10 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     },
   });
 
-  // If we have no visible items, render a fallback card container with the current item
-  if (visibleItems.length === 0) {
-    // console.log('No visible items, rendering fallback with initialData');
-    return (
-      <View style={styles.container}>
-        <Text>No visible items</Text>
-      </View>
-    );
-  }
   return (
     <View style={styles.container}>
       <IconPreloader />
-      {/* {renderBackButton()}
-      {renderSharedElement()} */}
-      
-      {visibleItems.map((item, index) => {
-        const itemId = item.data?.id || `item-${index}`;
-        const debugStyle = getDebugStyle(debugState[itemId] || 'IDLE');
-        
-        return (
-          <Animated.View
-            key={`card-${index}-${itemId}`}
-            ref={item.animation.itemRef}
-            style={[
-              {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: colors.background,
-                zIndex: item.animation.zIndex,
-                opacity: item.animation.opacity,
-                transform: [
-                  { translateX: item.animation.position.x },
-                  { translateY: item.animation.position.y },
-                  { scale: item.animation.scale }
-                ],
-              },
-              debugStyle
-            ]}
-          >
-            <CardContainer
-              data={item.data}
-              canEdit={canEdit}
-              notify={notifyRef.current}
-              onItemAction={handleItemAction}
-              onDocAction={handleDocAction}
-            />
-          </Animated.View>
-        );
-      })}
-
+      {renderCards()}
       {showSharedElement && (
         <SharedElement
           initialRect={new DOMRect(
