@@ -74,7 +74,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const notifyRef = useRef<Subject<string>>(new Subject<string>());
   const selectedItemRef = useRef<any>(null);
   const selectedItemPosition = useRef<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
-  const sharedElementPosition = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [showSharedElement, setShowSharedElement] = useState(false);
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
@@ -239,46 +238,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     }
   };
 
-  const renderBackButton = () => {
-    // Only show built-in back button if:
-    // 1. We're in not edit mode
-    // 2. We have more than one item in the stack
-    // 3. The current item has a parent (meaning it's not the root)
-    const shouldShowBack = !canEdit && 
-      contextStack.length > 1 && 
-      currentItem && 
-      currentItem.parent !== null;
-    
-    console.log('Back button conditions:', {
-      canEdit,
-      stackLength: contextStack.length,
-      hasCurrentItem: !!currentItem,
-      hasParent: currentItem?.parent !== null,
-      shouldShowBack
-    });
-    
-    if (!shouldShowBack) return null;
-
-    return (
-      <Pressable
-        style={[
-          styles.backButton, 
-          { 
-            marginTop: 16,
-            position: 'absolute',
-            top: 0,
-            left: 16,
-            zIndex: 1000, // Ensure it's above the cards
-          }
-        ]}
-        onPress={navigateBack}
-        disabled={isAnimating}
-      >
-        <Icon name="chevron-left" size={24} color={colors.primary} />
-      </Pressable>
-    );
-  };
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -336,7 +295,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       </View>
     );
   }
-  console.log('showSharedElement', showSharedElement);
   return (
     <View style={styles.container}>
       <IconPreloader />

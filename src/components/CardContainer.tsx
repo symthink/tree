@@ -11,7 +11,6 @@ interface CardContainerProps {
   data: any; // Replace with proper type when migrating core classes
   canEdit?: boolean;
   notify?: Subject<string>;
-  domrect?: DOMRect;
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
   onDocAction?: (action: { action: string; value: any }) => void;
 }
@@ -20,22 +19,14 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   data,
   canEdit = false,
   notify,
-  domrect,
   onItemAction,
   onDocAction,
 }) => {
   const { colors } = useTheme();
-  const [checkboxHidden, setCheckboxHidden] = useState(true);
   const [change, setChange] = useState(false);
   
-  const contentRef = useRef<ScrollView>(null);
-  const listRef = useRef<View>(null);
   const [sourceList, setSourceList] = useState<any[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
-  const [sharedElementRect, setSharedElementRect] = useState<DOMRect | undefined>();
-  const [isSharedElementVisible, setIsSharedElementVisible] = useState(false);
-  const [sharedElementItem, setSharedElementItem] = useState<any>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (notify) {
@@ -89,20 +80,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
       };
     }
   }, [data]);
-
-  // Equivalent to componentDidLoad in StencilJS
-  useEffect(() => {
-    console.log('CardContainer loaded', domrect);
-    console.log('Card container data:', data);
-    console.log('Card container data.support:', data?.support);
-    console.log('Card container hasKids():', data?.hasKids?.());
-    
-    if (domrect) {
-      // Animation would be handled differently in React Native
-      // This is a placeholder for animation logic
-      // Could use Animated API for React Native
-    }
-  }, []);
 
   // Equivalent to componentDidRender in StencilJS
   useEffect(() => {
@@ -194,18 +171,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     } else if (parentDoc.state$.getValue() === StateEnum.Viewing) {
       if (item.isKidEnabled()) {
         parentDoc.deselect();
-        if (itemDomrect) {
-          console.log('Setting shared element state:', {
-            rect: itemDomrect,
-            item: item
-          });
-          setSharedElementRect(itemDomrect);
-          setSharedElementItem(item);
-          setIsSharedElementVisible(true);
-          setIsTransitioning(true);
-          
-          // Removed the timeout that hides the shared element
-        }
         onItemAction?.({
           action: 'support-clicked',
           value: item,
@@ -217,9 +182,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     }
   };
 
-  const handleSharedElementComplete = () => {
-    console.log('Shared element animation complete');
-  };
 
   const isTouchDevice = () => {
     if (typeof window !== 'undefined') {
