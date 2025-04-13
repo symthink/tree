@@ -20,6 +20,7 @@ interface CardItemProps {
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
   showBackButton?: boolean;
+  visible?: boolean;
 }
 
 export const CardItem: React.FC<CardItemProps> = ({
@@ -33,6 +34,7 @@ export const CardItem: React.FC<CardItemProps> = ({
   onTextChange,
   onKeyAction,
   showBackButton = false,
+  visible = true,
 }) => {
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
@@ -101,6 +103,7 @@ export const CardItem: React.FC<CardItemProps> = ({
       backgroundColor: colors.background,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+      opacity: visible ? 1 : 0,
     },
     hovered: {
       backgroundColor: '#f5f5f5',

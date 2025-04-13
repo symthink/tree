@@ -7,7 +7,6 @@ import { ThemeProvider } from '../../src/theme/ThemeContext';
 import { SymthinkTree, loadWebFonts } from '../../src';
 import { ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
-import { AnimationProvider } from '../../src/animation/AnimationContext';
 import data from './mock-data.json';
 
 loadWebFonts();

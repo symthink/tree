@@ -26,59 +26,57 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   
   const [sourceList, setSourceList] = useState<any[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
+  const [showTopItem, setShowTopItem] = useState(!data.parent); // default false, unless is root
 
   useEffect(() => {
     const unsubscribe = subscribe((a: string) => onNotificationReceived(a));
-    console.log('CardContainer: notify subscription');
     return () => {
-      console.log('CardContainer: notify unsubscription');
       unsubscribe();
     };
   }, [subscribe]);
 
   useEffect(() => {
-    if (data) {
-      const root = data.getRoot();
-      setParentDoc(root);
-      
-      // Subscribe to state changes
-      const stateSubscription = root.state$.subscribe(onStateChange);
+    if (!data) return;
+    console.log(`CardContainer[${data.id}]: showTopItem`, showTopItem);
+    const root = data.getRoot();
+    setParentDoc(root); // NOTE: this is likely a mistake. fix later
+    // Subscribe to state changes
+    const stateSubscription = root.state$.subscribe(onStateChange);
 
-      // Set up other subscriptions
-      let selectSubscription: any;
-      let modSubscription: any;
-      let logSubscription: any;
+    // Set up other subscriptions
+    let selectSubscription: any;
+    let modSubscription: any;
+    let logSubscription: any;
 
-      if (data.select$) {
-        selectSubscription = data.select$.subscribe(onItemSelectionChange);
-      }
-      
-      if (data.mod$) {
-        modSubscription = data.mod$.subscribe(() => {
+    if (data.select$) {
+      selectSubscription = data.select$.subscribe(onItemSelectionChange);
+    }
+    
+    if (data.mod$) {
+      modSubscription = data.mod$.subscribe(() => {
+        setSourceList(data.getShowableSources());
+        setChange(prev => !prev);
+      });
+    }
+    
+    setSourceList(data.getShowableSources());
+    
+    if (data.getRoot().log$) {  
+      logSubscription = data.getRoot().log$.subscribe((a: { action: string, ts: number }) => {
+        if (a.action === 'ADD_SOURCE') {
           setSourceList(data.getShowableSources());
           setChange(prev => !prev);
-        });
-      }
-      
-      setSourceList(data.getShowableSources());
-      
-      if (data.getRoot().log$) {  
-        logSubscription = data.getRoot().log$.subscribe((a: { action: string, ts: number }) => {
-          if (a.action === 'ADD_SOURCE') {
-            setSourceList(data.getShowableSources());
-            setChange(prev => !prev);
-          }
-        });
-      }
-
-      // Cleanup subscriptions
-      return () => {
-        stateSubscription?.unsubscribe();
-        selectSubscription?.unsubscribe();
-        modSubscription?.unsubscribe();
-        logSubscription?.unsubscribe();
-      };
+        }
+      });
     }
+
+    // Cleanup subscriptions
+    return () => {
+      stateSubscription?.unsubscribe();
+      selectSubscription?.unsubscribe();
+      modSubscription?.unsubscribe();
+      logSubscription?.unsubscribe();
+    };
   }, [data]);
 
   // Equivalent to componentDidRender in StencilJS
@@ -114,11 +112,14 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   };
 
   const onNotificationReceived = async (a: string) => {
-    console.log('CardContainer: onNotificationReceived', a);
     // Handle closing sliding items
     switch (a) {
       case 'external-mod':
         setChange(prev => !prev);
+        break;
+      case 'animation-done':
+        console.log('CardContainer: animation-done');
+        setShowTopItem(true);
         break;
       default:
         break;
@@ -237,6 +238,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         onTextChange={modified}
         onKeyAction={handleKeyAction}
         showBackButton={!data.isRoot && !canEdit}
+        visible={showTopItem}
       />
     );
   };
@@ -271,6 +273,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     );
   };
 
+  console.log(`CardContainer[${data.id}]: showTopItem`, showTopItem);
   return (
     <View style={styles.container} testID="card-container">
         {renderTopItem()}

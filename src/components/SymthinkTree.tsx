@@ -39,7 +39,7 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   onBackComplete,
 }) => {
   const [doc] = useState<SymthinkDocument>(() => {
-    const std = new SymthinkDocument();
+    const std = new SymthinkDocument(initialData.id);
     std.load(initialData);
     std.state$.next(StateEnum.Viewing);
     return std;
@@ -384,8 +384,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           )}
           item={selectedItemRef.current}
           onAnimationComplete={() => {
-            console.log('SharedElement: onAnimationComplete');
-            notify('shared-element-complete');
+            notify('animation-done');
             setShowSharedElement(false);
           }}
         />
