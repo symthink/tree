@@ -204,9 +204,9 @@ export const CardItem: React.FC<CardItemProps> = ({
                 <Text style={styles.boldText}>Date:</Text> {item.eventDate?.toLocaleString()}
               </Text>
             )}
-            {!!sourceNumbers.length && (
+            {!!sourceNumbers?.length && (
               <View style={styles.subscript}>
-                <Text>Bookmark Icon</Text>
+                <Icon name="bookmark" size={16} color={colors.secondary} />
                 <Text style={styles.text}>{sourceNumbers.join(',')}</Text>
               </View>
             )}

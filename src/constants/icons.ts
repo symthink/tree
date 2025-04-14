@@ -6,6 +6,7 @@ export const SYMTHINK_ICONS = [
   'chevron-left',  // Back button
   'add',           // Add new items
   'more-vert',     // Options menu
+  'bookmark',      // Source reference indicator
 ] as const;
 
 export type SymthinkIcon = typeof SYMTHINK_ICONS[number]; 

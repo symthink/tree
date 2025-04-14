@@ -44,7 +44,7 @@ export const globalStyles = StyleSheet.create({
     padding: 4,
     paddingStart: 8,
     paddingEnd: 10,
-    marginVertical: 4,
+    marginVertical: 0,
     flexDirection: 'row',
     alignItems: 'flex-start',
   },

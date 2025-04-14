@@ -4,6 +4,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { TextEditor } from './TextEditor';
 import { globalStyles } from '../theme/globalStyles';
 import { Bullets, Symthink } from '../core/symthink.class';
+import { Icon } from './Icon';
 
 interface SupportItemProps {
   item: Symthink; // Replace with proper type
@@ -12,6 +13,7 @@ interface SupportItemProps {
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
   index?: number; // Add index prop
+  sourceNumbers?: number[];
 }
 
 export const SupportItem: React.FC<SupportItemProps> = ({
@@ -21,6 +23,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   onTextChange,
   onKeyAction,
   index = 0, // Default to 0 if not provided
+  sourceNumbers,
 }) => {
   const { colors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -133,7 +136,14 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       fontSize: 14,
       fontStyle: 'italic',
       flex: 1,
-    }
+    },
+    subscript: {
+      ...globalStyles.text,
+      fontSize: 10,
+      flexDirection: 'row',
+      // alignItems: 'flex-end',
+      justifyContent: 'flex-end',
+    },
   });
 
   const renderBullet = () => {
@@ -205,9 +215,17 @@ export const SupportItem: React.FC<SupportItemProps> = ({
           onKeyAction={handleKeyAction}
         />
       ) : (
-        <Text style={item.text ? styles.text : styles.placeholder}>
-          {renderItemText() || "Add supporting idea..."}
-        </Text>
+        <View style={{ flex: 1 }}>
+          <Text style={item.text ? styles.text : styles.placeholder}>
+            {renderItemText() || "Add supporting idea..."}
+          </Text>
+          {!!sourceNumbers?.length && (
+            <View style={styles.subscript}>
+              <Icon name="bookmark" size={16} color={colors.text} />
+              <Text>{sourceNumbers.join(',')}</Text>
+            </View>
+          )}
+        </View>
       )}
     </TouchableOpacity>
   );

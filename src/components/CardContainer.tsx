@@ -24,7 +24,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   const [change, setChange] = useState(false);
   const subscribe = useNotificationStore(state => state.subscribe);
   
-  const [sourceList, setSourceList] = useState<any[]>([]);
+  const [sourceList, setSourceList] = useState<{ id: string; index: number; src: any }[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
   const [showTopItem, setShowTopItem] = useState(!data.parent); // default false, unless is root
 
@@ -220,6 +220,14 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     // console.log('Key action:', key, type);
   };
 
+  // Calculate source numbers for an item
+  const getSourceNumbers = (itemId: string) => {
+    return sourceList.reduce((acc, curr, i) => {
+      if (curr.id === itemId) acc.push(i + 1);
+      return acc;
+    }, [] as number[]);
+  };
+
   // Render methods would go here
   // These would need to be implemented with React Native components
   const renderTopItem = () => {
@@ -230,7 +238,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         item={data}
         canEdit={canEdit}
         parentDoc={parentDoc}
-        sourceNumbers={[]}
+        sourceNumbers={getSourceNumbers(data.id)}
         onItemClick={handleMainItemClick}
         onOptionsClick={handleMainItemOptionsClick}
         onExpandClick={mainItemEditFullClick}
@@ -252,6 +260,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         onItemClick={handleSupportItemClick}
         onTextChange={() => modified()}
         onKeyAction={handleKeyAction}
+        getSourceNumbers={getSourceNumbers}
       />
     );
   };

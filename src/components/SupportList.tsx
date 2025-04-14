@@ -5,19 +5,21 @@ import { SupportItem } from './SupportItem';
 import { Symthink } from '../core/symthink.class';
 
 interface SupportListProps {
-  items: any[]; // Replace with proper type
+  items: Symthink[];
   canEdit?: boolean;
   onItemClick?: (item: any, event: any, domrect?: DOMRect) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
+  getSourceNumbers?: (itemId: string) => number[];
 }
 
 export const SupportList: React.FC<SupportListProps> = ({
-  items = [],
+  items,
   canEdit = false,
   onItemClick,
   onTextChange,
   onKeyAction,
+  getSourceNumbers,
 }) => {
   const { colors } = useTheme();
   
@@ -41,7 +43,7 @@ export const SupportList: React.FC<SupportListProps> = ({
     }
   });
 
-  const renderItem = ({ item, index }: { item: any, index: number }) => (
+  const renderItem = ({ item, index }: { item: Symthink, index: number }) => (
     <SupportItem
       item={item}
       canEdit={canEdit}
@@ -49,6 +51,7 @@ export const SupportList: React.FC<SupportListProps> = ({
       onTextChange={onTextChange}
       onKeyAction={onKeyAction}
       index={index}
+      sourceNumbers={getSourceNumbers?.(item.id)}
     />
   );
 
