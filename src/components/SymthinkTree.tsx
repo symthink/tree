@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { View, Animated, StyleSheet, Text, Dimensions, Pressable } from 'react-native';
 import { CardContainer } from './CardContainer';
-import { ISymthinkDocument, StateEnum, SymthinkDocument } from '../core/symthink.class';
+import { ISymthinkDocument, StateEnum, Symthink, SymthinkDocument } from '../core/symthink.class';
 import { useTheme } from '../theme/ThemeContext';
 import { NavigationProvider, useNavigation } from '../navigation/NavigationContext';
 import { useCardAnimation, NavigationItem } from '../hooks/useCardAnimation';
@@ -139,7 +139,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       
       if (!animItem) {
         return {
-          data: item,
+          data: item as Symthink,
           animation: createAnimationValues(index),
         };
       }

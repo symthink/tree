@@ -44,6 +44,12 @@ export type CitationStyleLang = {
     source?: string;
 };
 
+export interface SourceListItem {
+    id: string;
+    index: number;
+    src: CitationStyleLang;
+}
+
 export function isCSL(obj: any): obj is CitationStyleLang {
     const requiredFields = ['type', 'title', 'issued'];
     return !!(requiredFields.every(field => field in obj) &&

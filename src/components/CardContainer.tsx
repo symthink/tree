@@ -4,11 +4,11 @@ import { useTheme } from '../theme/ThemeContext';
 import { CardItem } from './CardItem';
 import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
-import { StateEnum } from '../core/symthink.class';
+import { StateEnum, Symthink } from '../core/symthink.class';
 import { useNotificationStore } from '../store/notificationStore';
 
 interface CardContainerProps {
-  data: any; // Replace with proper type when migrating core classes
+  data: Symthink;
   canEdit?: boolean;
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
   onDocAction?: (action: { action: string; value: any }) => void;
@@ -41,7 +41,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     const root = data.getRoot();
     setParentDoc(root); // NOTE: this is likely a mistake. fix later
     // Subscribe to state changes
-    const stateSubscription = root.state$.subscribe(onStateChange);
+    const stateSubscription = root.state$.subscribe((state: StateEnum) => onStateChange(state));
 
     // Set up other subscriptions
     let selectSubscription: any;
@@ -61,9 +61,9 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     
     setSourceList(data.getShowableSources());
     
-    if (data.getRoot().log$) {  
-      logSubscription = data.getRoot().log$.subscribe((a: { action: string, ts: number }) => {
-        if (a.action === 'ADD_SOURCE') {
+    if (root?.log$) {  
+      logSubscription = root.log$.subscribe((a: { action: number, ts: number }) => {
+        if (a.action === 1) { // Assuming 1 represents 'ADD_SOURCE', should use enum later
           setSourceList(data.getShowableSources());
           setChange(prev => !prev);
         }
@@ -106,7 +106,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     setChange(prev => !prev);
   };
 
-  const onStateChange = (state: string) => {
+  const onStateChange = (state: StateEnum) => {
     // console.log('onStateChange', state);
     setChange(prev => !prev);
   };

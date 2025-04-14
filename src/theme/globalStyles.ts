@@ -65,5 +65,7 @@ export const globalStyles = StyleSheet.create({
     textTransform: 'capitalize',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   },
-  
+  fontFam: {
+    fontFamily: 'Sympunk, Comfortaa, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  },
 }); 
