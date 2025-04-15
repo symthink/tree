@@ -26,3 +26,5 @@ export { IconPreloader } from './components/IconPreloader';
 export { SymthinkDocument } from './core/symthink.class';
 export type { ISymthinkDocument } from './core/symthink.class';
 export { default as loadWebFonts } from './theme/webFonts'; 
+export { useOutgoingActionStore, OutgoingMsgActionEnum } from './store/notificationStore';
+export type { OutgoingMsgAction } from './store/notificationStore';

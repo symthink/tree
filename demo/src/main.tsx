@@ -4,7 +4,7 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree, loadWebFonts } from '../../src';
+import { SymthinkTree, loadWebFonts, useOutgoingActionStore, OutgoingMsgActionEnum, OutgoingMsgAction } from '../../src';
 import { ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
@@ -34,13 +34,22 @@ const App = () => {
   const [canEdit, setCanEdit] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
   const notifyRef = useRef(new Subject());
+  const symthinkTreeSubscribe = useOutgoingActionStore(state => state.subscribe);
 
   useEffect(() => {
+    const subscription = symthinkTreeSubscribe(handleSymthinkTreeAction);
     // Cleanup function to complete and unsubscribe from the Subject
     return () => {
       notifyRef.current.complete();
+      return subscription();
     };
   }, []);
+
+  const handleSymthinkTreeAction = (action: OutgoingMsgAction) => {
+    if (action.action === OutgoingMsgActionEnum.OPEN) {
+      window.open(action.value, '_blank');
+    }
+  };
 
   const handleItemAction = (action: ItemAction) => {
     console.log('Item action:', action);

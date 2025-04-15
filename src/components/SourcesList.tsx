@@ -6,17 +6,17 @@ import { Cite } from '@citation-js/core';
 import '@citation-js/plugin-csl';
 import { CitationStyleLang, SourceListItem } from '../core/symthink.class';
 import ParsedText from 'react-native-parsed-text';
+import { OutgoingMsgActionEnum, useOutgoingActionStore } from '../store/notificationStore';
 
 interface SourcesListProps {
   sources: SourceListItem[];
-  onSourceClick?: (source: CitationStyleLang, index: number) => void;
 }
 
 export const SourcesList: React.FC<SourcesListProps> = ({ 
   sources = [],
-  onSourceClick,
 }) => {
   const { colors } = useTheme();
+  const notifyConsumingApp = useOutgoingActionStore(state => state.notify);
 
   const formatCitation = (source: CitationStyleLang) => {
     try {
@@ -96,7 +96,10 @@ export const SourcesList: React.FC<SourcesListProps> = ({
 
   const handleSourcePress = (source: CitationStyleLang, index: number) => {
     if (source.URL) {
-      onSourceClick?.(source, index);
+      notifyConsumingApp({
+        action: OutgoingMsgActionEnum.OPEN,
+        value: source.URL,
+      });
     }
   };
 

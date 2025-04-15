@@ -14,6 +14,7 @@ interface CardContainerProps {
   onDocAction?: (action: { action: string; value: any }) => void;
 }
 
+// need to replace item and doc actions with the new outgoing action store
 export const CardContainer: React.FC<CardContainerProps> = ({
   data,
   canEdit = false,
@@ -271,12 +272,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     return (
       <SourcesList
         sources={sourceList || []}
-        onSourceClick={(src, idx) => {
-          onItemAction?.({
-            action: 'source-clicked',
-            value: { src, idx }
-          });
-        }}
       />
     );
   };
