@@ -190,8 +190,8 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       txt = parts.join(':').trim();
     }
     return [
-      !!label && <Text style={globalStyles.label}>{label}:</Text>,
-      ' ' + txt,
+      !!label && <Text style={globalStyles.label}>{label}: </Text>,
+      txt,
     ];
   }
 

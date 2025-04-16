@@ -47,4 +47,4 @@ class SimpleGlobalStore {
 }
 
 // Export a singleton instance
-export const simpleGlobalStore = new SimpleGlobalStore(); 
+export const globalStor = new SimpleGlobalStore();

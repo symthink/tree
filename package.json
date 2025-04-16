@@ -63,6 +63,7 @@
     "@citation-js/core": "^0.7.18",
     "@citation-js/plugin-csl": "^0.7.18",
     "@expo/vector-icons": "^14.1.0",
+    "react-native-gesture-handler": "^2.25.0",
     "react-native-parsed-text": "^0.0.22",
     "rollup-plugin-copy": "^3.5.0",
     "rxjs": "^7.8.2",

@@ -12,7 +12,7 @@ import { SharedElement } from './SharedElement';
 import { useAnimation } from '../animation/AnimationContext';
 import { AnimationProvider } from '../animation/AnimationContext';
 import { useNotificationStore } from '../store/notificationStore';
-import { simpleGlobalStore } from '../core/simpleGlobalStore';
+import { globalStor } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
 import { useAnimationStore } from '../store/notificationStore';
 
@@ -175,7 +175,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           height: action.domrect.height
         };
         // Store the DOMRect for back navigation
-        simpleGlobalStore.pushNavigationRect(action.domrect);
+        globalStor.pushNavigationRect(action.domrect);
         setShowSharedElement(true);
       }
       
@@ -223,7 +223,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       return;
     }
 
-    const targetRect = simpleGlobalStore.popNavigationRect();
+    const targetRect = globalStor.popNavigationRect();
     if (!targetRect) {
       console.warn('No stored position found for back navigation');
       return;

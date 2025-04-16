@@ -1,5 +1,4 @@
-import { create, StateCreator } from 'zustand';
-import { Symthink, SymthinkDocument } from '../core/symthink.class';
+import { create } from 'zustand';
 
 interface NotificationState {
   subscribers: Set<(message: string) => void>;
