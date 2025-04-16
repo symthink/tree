@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { Animated, View, StyleSheet, Dimensions, Text } from 'react-native';
+import { Animated, View, StyleSheet, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
 
-interface SharedElementProps {
-  initialRect?: DOMRect;
-  item?: any; // The clicked support item
+interface SharedElementBackProps {
+  targetRect?: DOMRect;
+  item?: any; // The target item to animate to
   onAnimationComplete?: () => void;
 }
 
-export const SharedElement: React.FC<SharedElementProps> = ({
-  initialRect,
+export const SharedElementBack: React.FC<SharedElementBackProps> = ({
+  targetRect,
   item,
   onAnimationComplete,
 }) => {
@@ -21,10 +21,10 @@ export const SharedElement: React.FC<SharedElementProps> = ({
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const startAnimation = useCallback(() => {
-    if (!initialRect || isAnimating.current) return;
+    if (!targetRect || isAnimating.current) return;
 
     isAnimating.current = true;
-    translateY.setValue(initialRect.y);
+    translateY.setValue(0); // Start at top (0)
 
     // Clear any existing animation
     if (animationRef.current) {
@@ -33,7 +33,7 @@ export const SharedElement: React.FC<SharedElementProps> = ({
 
     const timeoutId = setTimeout(() => {
       animationRef.current = Animated.timing(translateY, {
-        toValue: 0,
+        toValue: targetRect.y,
         duration: 400,
         useNativeDriver: true,
       });
@@ -53,7 +53,7 @@ export const SharedElement: React.FC<SharedElementProps> = ({
       }
       isAnimating.current = false;
     };
-  }, [initialRect, translateY, onAnimationComplete]);
+  }, [targetRect, translateY, onAnimationComplete]);
 
   useEffect(() => {
     return startAnimation();
@@ -91,7 +91,7 @@ export const SharedElement: React.FC<SharedElementProps> = ({
     },
   });
 
-  if (!initialRect || !item) {
+  if (!targetRect || !item) {
     return null;
   }
 
@@ -106,7 +106,6 @@ export const SharedElement: React.FC<SharedElementProps> = ({
         },
       ]}
     >
-      {/* TODO: replace with CardItem component and add a disabled state to that component */}
       <View style={styles.content}>
         <View style={styles.backButtonContainer}>
           <Icon name="chevron-left" size={26} color={colors.link} />

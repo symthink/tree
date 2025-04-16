@@ -12,6 +12,8 @@ import { SharedElement } from './SharedElement';
 import { useAnimation } from '../animation/AnimationContext';
 import { AnimationProvider } from '../animation/AnimationContext';
 import { useNotificationStore } from '../store/notificationStore';
+import { simpleGlobalStore } from '../core/simpleGlobalStore';
+import { SharedElementBack } from './SharedElementBack';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -80,6 +82,9 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const selectedItemRef = useRef<any>(null);
   const selectedItemPosition = useRef<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
   const [showSharedElement, setShowSharedElement] = useState(false);
+  const [showSharedElementBack, setShowSharedElementBack] = useState(false);
+  const previousItemRef = useRef<any>(null);
+  const cardTransitionRef = useRef<() => void>();
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {
@@ -161,6 +166,11 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       
       // Set up shared element animation
       if (action.domrect) {
+        console.log('Forward navigation - storing rect:', {
+          level: contextStack.length,
+          rect: action.domrect,
+          stackSize: contextStack.length
+        });
         selectedItemRef.current = supportItem;
         selectedItemPosition.current = {
           x: action.domrect.x,
@@ -168,6 +178,8 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           width: action.domrect.width,
           height: action.domrect.height
         };
+        // Store the DOMRect for back navigation
+        simpleGlobalStore.pushNavigationRect(action.domrect);
         setShowSharedElement(true);
       }
       
@@ -208,7 +220,28 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   // Memoize the navigateBack callback
   const navigateBack = useCallback(() => {
-    if (contextStack.length <= 1 || animationState.state === 'ANIMATING') {
+    console.log('Attempting back navigation:', {
+      stackLength: contextStack.length,
+      animating: animationState.state,
+      storedRects: simpleGlobalStore.navigationRectsCount
+    });
+
+    if (contextStack.length <= 1 || animationState.state !== 'IDLE') {
+      console.log('Back navigation blocked:', {
+        reason: contextStack.length <= 1 ? 'stack too small' : `animation state is ${animationState.state}`
+      });
+      return;
+    }
+
+    const targetRect = simpleGlobalStore.popNavigationRect();
+    console.log('Back navigation - retrieved rect:', {
+      hasRect: !!targetRect,
+      remainingRects: simpleGlobalStore.navigationRectsCount,
+      rect: targetRect
+    });
+
+    if (!targetRect) {
+      console.warn('No stored position found for back navigation');
       return;
     }
     
@@ -220,11 +253,52 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     const currentCard = animatedItems.get(currentCardId);
     const previousCard = animatedItems.get(previousCardId);
 
+    console.log('Back navigation - cards:', {
+      currentCardFound: !!currentCard,
+      previousCardFound: !!previousCard,
+      currentCardId,
+      previousCardId,
+      animatedItemsSize: animatedItems.size
+    });
+
     if (!currentCard || !previousCard) {
       console.warn('Unable to find cards for back navigation');
       cancelAnimation();
       return;
     }
+
+    // Store refs for shared element and target rect
+    previousItemRef.current = currentCard.data; // Use current card's data for shared element
+    selectedItemPosition.current = {
+      x: targetRect.x,
+      y: targetRect.y,
+      width: targetRect.width,
+      height: targetRect.height
+    };
+
+    // Store the card transition function for later use
+    cardTransitionRef.current = () => {
+      console.log('Starting card transition animation');
+      animateBackTransition(currentCard, previousCard, () => {
+        console.log('Card transition complete - cleaning up');
+        // Remove the current card from animatedItems after animation
+        setAnimatedItems(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(currentCardId);
+          return newMap;
+        });
+        
+        // Pop the item from the navigation stack after animation
+        popItem();
+        
+        // Ensure animation state is reset to IDLE
+        cancelAnimation();
+        startAnimation('IDLE');
+        completeAnimation();
+        
+        onBackComplete?.();
+      });
+    };
 
     // Update z-index for proper layering during animation
     setAnimatedItems(prev => {
@@ -251,22 +325,11 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       
       return newMap;
     });
-    
-    animateBackTransition(currentCard, previousCard, () => {
-      // Remove the current card from animatedItems after animation
-      setAnimatedItems(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(currentCardId);
-        return newMap;
-      });
-      
-      // Pop the item from the navigation stack after animation
-      popItem();
-      
-      cancelAnimation();
-      onBackComplete?.();
-    });
-  }, [contextStack.length, animationState.state, startAnimation, popItem, width, onBackComplete, animatedItems, animateBackTransition, cancelAnimation]);
+
+    console.log('Showing SharedElementBack component');
+    setShowSharedElementBack(true);
+
+  }, [contextStack.length, animationState.state, startAnimation, popItem, animatedItems, animateBackTransition, cancelAnimation, completeAnimation, onBackComplete]);
 
   // Add effect to handle canGoBack prop
   useEffect(() => {
@@ -383,8 +446,25 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           )}
           item={selectedItemRef.current}
           onAnimationComplete={() => {
+            console.log('Forward SharedElement animation complete');
             notify('animation-done');
             setShowSharedElement(false);
+          }}
+        />
+      )}
+      {showSharedElementBack && (
+        <SharedElementBack
+          targetRect={new DOMRect(
+            selectedItemPosition.current.x,
+            selectedItemPosition.current.y,
+            selectedItemPosition.current.width,
+            selectedItemPosition.current.height
+          )}
+          item={previousItemRef.current}
+          onAnimationComplete={() => {
+            console.log('Back SharedElement animation complete');
+            setShowSharedElementBack(false);
+            cardTransitionRef.current?.();
           }}
         />
       )}
