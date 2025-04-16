@@ -14,6 +14,7 @@ import { AnimationProvider } from '../animation/AnimationContext';
 import { useNotificationStore } from '../store/notificationStore';
 import { simpleGlobalStore } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
+import { useAnimationStore } from '../store/notificationStore';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -166,11 +167,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       
       // Set up shared element animation
       if (action.domrect) {
-        console.log('Forward navigation - storing rect:', {
-          level: contextStack.length,
-          rect: action.domrect,
-          stackSize: contextStack.length
-        });
         selectedItemRef.current = supportItem;
         selectedItemPosition.current = {
           x: action.domrect.x,
@@ -187,7 +183,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       const currentCard = animatedItems.get(currentCardId);
       
       if (!currentCard) {
-        console.error('Could not find current card for animation');
+        console.warn('Could not find current card for animation');
         setShowSharedElement(false);
         return;
       }
@@ -220,26 +216,14 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
 
   // Memoize the navigateBack callback
   const navigateBack = useCallback(() => {
-    console.log('Attempting back navigation:', {
-      stackLength: contextStack.length,
-      animating: animationState.state,
-      storedRects: simpleGlobalStore.navigationRectsCount
-    });
-
     if (contextStack.length <= 1 || animationState.state !== 'IDLE') {
-      console.log('Back navigation blocked:', {
+      console.warn('Back navigation blocked:', {
         reason: contextStack.length <= 1 ? 'stack too small' : `animation state is ${animationState.state}`
       });
       return;
     }
 
     const targetRect = simpleGlobalStore.popNavigationRect();
-    console.log('Back navigation - retrieved rect:', {
-      hasRect: !!targetRect,
-      remainingRects: simpleGlobalStore.navigationRectsCount,
-      rect: targetRect
-    });
-
     if (!targetRect) {
       console.warn('No stored position found for back navigation');
       return;
@@ -252,14 +236,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
     
     const currentCard = animatedItems.get(currentCardId);
     const previousCard = animatedItems.get(previousCardId);
-
-    console.log('Back navigation - cards:', {
-      currentCardFound: !!currentCard,
-      previousCardFound: !!previousCard,
-      currentCardId,
-      previousCardId,
-      animatedItemsSize: animatedItems.size
-    });
 
     if (!currentCard || !previousCard) {
       console.warn('Unable to find cards for back navigation');
@@ -276,29 +252,8 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       height: targetRect.height
     };
 
-    // Store the card transition function for later use
-    cardTransitionRef.current = () => {
-      console.log('Starting card transition animation');
-      animateBackTransition(currentCard, previousCard, () => {
-        console.log('Card transition complete - cleaning up');
-        // Remove the current card from animatedItems after animation
-        setAnimatedItems(prev => {
-          const newMap = new Map(prev);
-          newMap.delete(currentCardId);
-          return newMap;
-        });
-        
-        // Pop the item from the navigation stack after animation
-        popItem();
-        
-        // Ensure animation state is reset to IDLE
-        cancelAnimation();
-        startAnimation('IDLE');
-        completeAnimation();
-        
-        onBackComplete?.();
-      });
-    };
+    // Set the animating item id
+    useAnimationStore.getState().setAnimatingItemId(currentCard.data.id);
 
     // Update z-index for proper layering during animation
     setAnimatedItems(prev => {
@@ -326,8 +281,26 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       return newMap;
     });
 
-    console.log('Showing SharedElementBack component');
+    // Start both animations in parallel
     setShowSharedElementBack(true);
+    animateBackTransition(currentCard, previousCard, () => {
+      // Remove the current card from animatedItems after animation
+      setAnimatedItems(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(currentCardId);
+        return newMap;
+      });
+      
+      // Pop the item from the navigation stack after animation
+      popItem();
+      
+      // Ensure animation state is reset to IDLE
+      cancelAnimation();
+      startAnimation('IDLE');
+      completeAnimation();
+      
+      onBackComplete?.();
+    });
 
   }, [contextStack.length, animationState.state, startAnimation, popItem, animatedItems, animateBackTransition, cancelAnimation, completeAnimation, onBackComplete]);
 
@@ -446,7 +419,6 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           )}
           item={selectedItemRef.current}
           onAnimationComplete={() => {
-            console.log('Forward SharedElement animation complete');
             notify('animation-done');
             setShowSharedElement(false);
           }}
@@ -462,9 +434,9 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           )}
           item={previousItemRef.current}
           onAnimationComplete={() => {
-            console.log('Back SharedElement animation complete');
             setShowSharedElementBack(false);
-            cardTransitionRef.current?.();
+            // Clear the animating item id
+            useAnimationStore.getState().setAnimatingItemId(null);
           }}
         />
       )}

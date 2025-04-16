@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { SupportItem } from './SupportItem';
 import { Symthink } from '../core/symthink.class';
+import { useAnimationStore } from '../store/notificationStore';
 
 interface SupportListProps {
   items: Symthink[];
@@ -22,6 +23,8 @@ export const SupportList: React.FC<SupportListProps> = ({
   getSourceNumbers,
 }) => {
   const { colors } = useTheme();
+  const animatingItemId = useAnimationStore(state => state.animatingItemId);
+
   
   const styles = StyleSheet.create({
     container: {
@@ -52,6 +55,7 @@ export const SupportList: React.FC<SupportListProps> = ({
       onKeyAction={onKeyAction}
       index={index}
       sourceNumbers={getSourceNumbers?.(item.id)}
+      hide={item.id === animatingItemId}
     />
   );
 

@@ -3,7 +3,7 @@ import { Animated, View, StyleSheet, Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
-
+import { SupportItem } from './SupportItem';
 interface SharedElementBackProps {
   targetRect?: DOMRect;
   item?: any; // The target item to animate to
@@ -71,24 +71,6 @@ export const SharedElementBack: React.FC<SharedElementBackProps> = ({
       left: 0,
       top: 0,
     },
-    backButtonContainer: {
-      ...globalStyles.listItemIconContainer,
-      margin: 'auto',
-      marginRight: 4,
-      marginLeft: -4,
-    },
-    content: {
-      ...globalStyles.listItemRow,
-      height: '100%', // Ensure content fills the height
-    },
-    bullet: {
-      ...globalStyles.listItemIcon,
-      color: colors.link,
-    },
-    text: {
-      ...globalStyles.text,
-      flex: 1,
-    },
   });
 
   if (!targetRect || !item) {
@@ -106,15 +88,7 @@ export const SharedElementBack: React.FC<SharedElementBackProps> = ({
         },
       ]}
     >
-      <View style={styles.content}>
-        <View style={styles.backButtonContainer}>
-          <Icon name="chevron-left" size={26} color={colors.link} />
-        </View>
-        <View style={{ flex: 1 }}>
-          {item.label && <Text style={globalStyles.label}>{item.label}</Text>}
-          <Text style={styles.text}>{item.text || "Add supporting idea..."}</Text>
-        </View>
-      </View>
+      <SupportItem item={item} />
     </Animated.View>
   );
 }; 

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, findNodeHandle, UIM
 import { useTheme } from '../theme/ThemeContext';
 import { TextEditor } from './TextEditor';
 import { globalStyles } from '../theme/globalStyles';
-import { Bullets, Symthink } from '../core/symthink.class';
+import { Symthink } from '../core/symthink.class';
 import { Icon } from './Icon';
 
 interface SupportItemProps {
@@ -14,6 +14,7 @@ interface SupportItemProps {
   onKeyAction?: (key: string, type?: string) => void;
   index?: number; // Add index prop
   sourceNumbers?: number[];
+  hide?: boolean;
 }
 
 export const SupportItem: React.FC<SupportItemProps> = ({
@@ -24,6 +25,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   onKeyAction,
   index = 0, // Default to 0 if not provided
   sourceNumbers,
+  hide = false,
 }) => {
   const { colors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -101,6 +103,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
     container: {
       ...globalStyles.listItemRow,
       backgroundColor: colors.background,
+      visibility: hide ? 'hidden' : 'visible',
     },
     hovered: {
       backgroundColor: '#f5f5f5',

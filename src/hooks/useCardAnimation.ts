@@ -195,22 +195,20 @@ export const useCardAnimation = (width: number, handlers?: AnimationHandlers) =>
         [previousCard.data?.id]: 'ANIMATING',
       }));
 
-      // First phase: Fade out current card to the right
-      const currentCardAnimations = [
-        createSlideAnimation(currentCard.animation, { x: width, y: 0 }, ANIMATION_CONFIG.BACK),
-        createFadeAnimation(currentCard.animation, 0, ANIMATION_CONFIG.BACK)
-      ];
+      // Set current card opacity instantly to 0.5
+      currentCard.animation.opacity.setValue(0.5);
+      previousCard.animation.opacity.setValue(1);
+
+      // First phase: Slide current card to the right
+      const currentCardAnimation = createSlideAnimation(currentCard.animation, { x: width, y: 0 }, ANIMATION_CONFIG.BACK);
 
       // Second phase: Bring back the previous card from the left
-      const previousCardAnimations = [
-        createSlideAnimation(previousCard.animation, { x: 0, y: 0 }, ANIMATION_CONFIG.BACK),
-        createFadeAnimation(previousCard.animation, 1, ANIMATION_CONFIG.BACK)
-      ];
+      const previousCardAnimation = createSlideAnimation(previousCard.animation, { x: 0, y: 0 }, ANIMATION_CONFIG.BACK);
 
       // Run the animations
       Animated.sequence([
-        Animated.parallel(currentCardAnimations),
-        Animated.parallel(previousCardAnimations),
+        currentCardAnimation,
+        previousCardAnimation,
       ]).start((result) => {
         debug('Back transition completed', { success: result.finished });
         if (result.finished) {
@@ -231,7 +229,7 @@ export const useCardAnimation = (width: number, handlers?: AnimationHandlers) =>
         onComplete?.();
       });
     }, 'animateBackTransition');
-  }, [createSlideAnimation, createFadeAnimation, handlers]);
+  }, [createSlideAnimation, handlers]);
 
   return {
     createAnimationValues,

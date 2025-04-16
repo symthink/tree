@@ -94,3 +94,13 @@ export const useOutgoingActionStore = create<OutgoingActionState>((set, get) => 
     };
   }
 }));  
+
+interface AnimationState {
+  animatingItemId: string | null;
+  setAnimatingItemId: (id: string | null) => void;
+}
+
+export const useAnimationStore = create<AnimationState>((set) => ({
+  animatingItemId: null,
+  setAnimatingItemId: (id) => set({ animatingItemId: id }),
+}));  

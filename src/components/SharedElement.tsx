@@ -106,7 +106,6 @@ export const SharedElement: React.FC<SharedElementProps> = ({
         },
       ]}
     >
-      {/* TODO: replace with CardItem component and add a disabled state to that component */}
       <View style={styles.content}>
         <View style={styles.backButtonContainer}>
           <Icon name="chevron-left" size={26} color={colors.link} />
