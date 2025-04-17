@@ -13,12 +13,16 @@ import { AnimationProvider } from '../core/AnimationContext';
 import { globalStor } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
 import { useAnimationStore } from '../store/AnimationStore';
+import { SymthinkTreeEventAction } from '../store/SymthinkTreeEvent';
+import { ClientAppEventType } from '../store/ClientAppEvent';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
-  canEdit?: boolean;
-  canGoBack?: boolean;
-  onBackComplete?: () => void;
+  subscribe?: (action: SymthinkTreeEventAction) => void;
+  notify?: (action: ClientAppEventType) => void;
+  // canEdit?: boolean;
+  // canGoBack?: boolean;
+  // onBackComplete?: () => void;
 }
 
 interface ItemAction {
