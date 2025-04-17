@@ -3,18 +3,16 @@ import { View, Animated, StyleSheet, Text, Dimensions, Pressable } from 'react-n
 import { CardContainer } from './CardContainer';
 import { ISymthinkDocument, StateEnum, Symthink, SymthinkDocument } from '../core/symthink.class';
 import { useTheme } from '../theme/ThemeContext';
-import { NavigationProvider, useNavigation } from '../navigation/NavigationContext';
+import { NavigationProvider, useNavigation } from '../core/NavigationContext';
 import { useCardAnimation, NavigationItem } from '../hooks/useCardAnimation';
 import { globalStyles } from '../theme/globalStyles';
-import { Icon } from './Icon';
 import { IconPreloader } from './IconPreloader';
 import { SharedElement } from './SharedElement';
-import { useAnimation } from '../animation/AnimationContext';
-import { AnimationProvider } from '../animation/AnimationContext';
-import { useNotificationStore } from '../store/notificationStore';
+import { useAnimation } from '../core/AnimationContext';
+import { AnimationProvider } from '../core/AnimationContext';
 import { globalStor } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
-import { useAnimationStore } from '../store/notificationStore';
+import { useAnimationStore } from '../store/AnimationStore';
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
@@ -76,7 +74,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
   const { width } = Dimensions.get('window');
   const { navigationStack: contextStack, currentItem, pushItem, popItem } = useNavigation();
   const { state: animationState, queueAnimation, startAnimation, completeAnimation, cancelAnimation } = useAnimation();
-  const notify = useNotificationStore(state => state.notify);
+  const notifySharedElFwdAnimDone = useAnimationStore((state: { notifySharedElFwdAnimDone: () => void }) => state.notifySharedElFwdAnimDone);
   
   // Replace useRef with useState for animated items
   const [animatedItems, setAnimatedItems] = useState<Map<string, NavigationItem>>(new Map());
@@ -419,7 +417,7 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
           )}
           item={selectedItemRef.current}
           onAnimationComplete={() => {
-            notify('animation-done');
+            notifySharedElFwdAnimDone();
             setShowSharedElement(false);
           }}
         />

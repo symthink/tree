@@ -4,10 +4,11 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree, loadWebFonts, useOutgoingActionStore, OutgoingMsgActionEnum, OutgoingMsgAction } from '../../src';
+import { SymthinkTree, loadWebFonts, useSymthinkTreeEvent, useClientAppEvent, SymthinkTreeEvent } from '../../src';
 import { ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
+import { SymthinkTreeEventAction } from '../../src/store/SymthinkTreeEvent';
 
 loadWebFonts();
 
@@ -34,7 +35,7 @@ const App = () => {
   const [canEdit, setCanEdit] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
   const notifyRef = useRef(new Subject());
-  const symthinkTreeSubscribe = useOutgoingActionStore(state => state.subscribe);
+  const symthinkTreeSubscribe = useSymthinkTreeEvent(state => state.subscribe);
 
   useEffect(() => {
     const subscription = symthinkTreeSubscribe(handleSymthinkTreeAction);
@@ -45,8 +46,8 @@ const App = () => {
     };
   }, []);
 
-  const handleSymthinkTreeAction = (action: OutgoingMsgAction) => {
-    if (action.action === OutgoingMsgActionEnum.OPEN) {
+  const handleSymthinkTreeAction = (action: SymthinkTreeEventAction) => {
+      if (action.action === SymthinkTreeEvent.OPEN) {
       window.open(action.value, '_blank');
     }
   };

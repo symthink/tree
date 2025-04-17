@@ -6,7 +6,7 @@ import { Cite } from '@citation-js/core';
 import '@citation-js/plugin-csl';
 import { CitationStyleLang, SourceListItem } from '../core/symthink.class';
 import ParsedText from 'react-native-parsed-text';
-import { OutgoingMsgActionEnum, useOutgoingActionStore } from '../store/notificationStore';
+import { SymthinkTreeEvent, useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
 
 interface SourcesListProps {
   sources: SourceListItem[];
@@ -16,7 +16,7 @@ export const SourcesList: React.FC<SourcesListProps> = ({
   sources = [],
 }) => {
   const { colors } = useTheme();
-  const notifyConsumingApp = useOutgoingActionStore(state => state.notify);
+  const notifyConsumingApp = useSymthinkTreeEvent(state => state.notify);
 
   const formatCitation = (source: CitationStyleLang) => {
     try {
@@ -97,7 +97,7 @@ export const SourcesList: React.FC<SourcesListProps> = ({
   const handleSourcePress = (source: CitationStyleLang, index: number) => {
     if (source.URL) {
       notifyConsumingApp({
-        action: OutgoingMsgActionEnum.OPEN,
+        action: SymthinkTreeEvent.OPEN,
         value: source.URL,
       });
     }

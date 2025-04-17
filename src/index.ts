@@ -16,7 +16,7 @@ export { TextEditor } from './components/TextEditor';
 
 // Export navigation components  
 export { SymthinkTree } from './components/SymthinkTree';
-export { NavigationProvider, useNavigation } from './navigation/NavigationContext';
+export { NavigationProvider, useNavigation } from './core/NavigationContext';
 
 // Export theme context
 export { ThemeProvider, useTheme } from './theme/ThemeContext';
@@ -26,5 +26,7 @@ export { IconPreloader } from './components/IconPreloader';
 export { SymthinkDocument } from './core/symthink.class';
 export type { ISymthinkDocument } from './core/symthink.class';
 export { default as loadWebFonts } from './theme/webFonts'; 
-export { useOutgoingActionStore, OutgoingMsgActionEnum } from './store/notificationStore';
-export type { OutgoingMsgAction } from './store/notificationStore';
+export { useClientAppEvent, ClientAppEvent } from './store/ClientAppEvent';
+export type { ClientAppEventType } from './store/ClientAppEvent';
+export { useSymthinkTreeEvent, SymthinkTreeEvent } from './store/SymthinkTreeEvent';
+export type { SymthinkTreeEventType } from './store/SymthinkTreeEvent';

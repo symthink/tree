@@ -190,13 +190,13 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       txt = parts.join(':').trim();
     }
     return [
-      !!label && <Text style={globalStyles.label}>{label}: </Text>,
-      txt,
+      !!label && <Text key="label" style={globalStyles.label}>{label}: </Text>,
+      <Text key="text">{txt}</Text>,
     ];
   }
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity 
       ref={itemRef}
       style={[
         styles.container,

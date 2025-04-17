@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { CardItem } from './CardItem';
 import { SupportList } from './SupportList';
 import { SourcesList } from './SourcesList';
 import { StateEnum, Symthink } from '../core/symthink.class';
-import { useNotificationStore } from '../store/notificationStore';
+import { SymthinkTreeEvent, SymthinkTreeEventAction, useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
+import { useAnimationStore } from '../store/AnimationStore';
 
 interface CardContainerProps {
   data: Symthink;
@@ -13,7 +14,6 @@ interface CardContainerProps {
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
   onDocAction?: (action: { action: string; value: any }) => void;
 }
-
 // need to replace item and doc actions with the new outgoing action store
 export const CardContainer: React.FC<CardContainerProps> = ({
   data,
@@ -23,18 +23,26 @@ export const CardContainer: React.FC<CardContainerProps> = ({
 }) => {
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
-  const subscribe = useNotificationStore(state => state.subscribe);
+  const subscribe = useSymthinkTreeEvent(state => state.subscribe);
+  const subscribeSharedElFwdAnimDone = useAnimationStore((state: { subscribeSharedElFwdAnimDone: (callback: () => void) => () => void }) => state.subscribeSharedElFwdAnimDone);
   
   const [sourceList, setSourceList] = useState<{ id: string; index: number; src: any }[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
   const [showTopItem, setShowTopItem] = useState(!data.parent); // default false, unless is root
 
   useEffect(() => {
-    const unsubscribe = subscribe((a: string) => onNotificationReceived(a));
+    const unsubscribe = subscribe((a: SymthinkTreeEventAction) => onSymthinkTreeEvent(a));
     return () => {
       unsubscribe();
     };
   }, [subscribe]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeSharedElFwdAnimDone(() => setShowTopItem(true));
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribeSharedElFwdAnimDone]);
 
   useEffect(() => {
     if (!data) return;
@@ -112,19 +120,21 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     setChange(prev => !prev);
   };
 
-  const onNotificationReceived = async (a: string) => {
+
+  const onSymthinkTreeEvent = (a: SymthinkTreeEventAction) => {
+    console.log('onSymthinkTreeEvent', a);
     // Handle closing sliding items
-    switch (a) {
-      case 'external-mod':
+    switch (a.action) {
+      case SymthinkTreeEvent.MODIFIED: // or 'external-mod' ?
         setChange(prev => !prev);
         break;
-      case 'animation-done':
-        setShowTopItem(true);
+      case SymthinkTreeEvent.PAGECHANGE:
+      // TODO: handle page change
         break;
       default:
         break;
     }
-  };
+  }
 
   const modified = (percDiff?: number) => {
     setChange(prev => !prev);

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { SupportItem } from './SupportItem';
 import { Symthink } from '../core/symthink.class';
-import { useAnimationStore } from '../store/notificationStore';
+import { useAnimationStore } from '../store/AnimationStore';
 
 interface SupportListProps {
   items: Symthink[];
@@ -47,7 +47,7 @@ export const SupportList: React.FC<SupportListProps> = ({
   });
 
   const renderItem = ({ item, index }: { item: Symthink, index: number }) => (
-    <SupportItem
+    <SupportItem 
       item={item}
       canEdit={canEdit}
       onItemClick={onItemClick}
