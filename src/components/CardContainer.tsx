@@ -10,14 +10,12 @@ import { useAnimationStore } from '../store/AnimationStore';
 
 interface CardContainerProps {
   data: Symthink;
-  canEdit?: boolean;
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
   onDocAction?: (action: { action: string; value: any }) => void;
 }
 // need to replace item and doc actions with the new outgoing action store
 export const CardContainer: React.FC<CardContainerProps> = ({
   data,
-  canEdit = false,
   onItemAction,
   onDocAction,
 }) => {
@@ -150,7 +148,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     }
     
     item.select$.next(true);
-    if (!data.isRoot && !canEdit) {
+    if (!data.isRoot) {
       onDocAction?.({
         action: 'go-back',
         value: item,
@@ -203,7 +201,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
 
   const isVoting = parentDoc?.state$?.getValue() === StateEnum.Voting;
   const isRanking = parentDoc?.state$?.getValue() === StateEnum.Ranking;
-  const showMoreOptions = canEdit;
+  const showMoreOptions = false;
   const reOrderDisabled = data?.getRoot()?.state$?.getValue() !== StateEnum.Ranking;
 
   const styles = StyleSheet.create({
@@ -247,7 +245,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     return (
       <CardItem
         item={data}
-        // canEdit={canEdit}
         parentDoc={parentDoc}
         sourceNumbers={getSourceNumbers(data.id)}
         onItemClick={handleMainItemClick}
@@ -255,7 +252,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         onExpandClick={mainItemEditFullClick}
         onTextChange={modified}
         onKeyAction={handleKeyAction}
-        showBackButton={!data.isRoot && !canEdit}
+        showBackButton={!data.isRoot}
         visible={showTopItem}
       />
     );
@@ -267,7 +264,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     return (
       <SupportList
         items={data.support || []}
-        // canEdit={canEdit}
         onItemClick={handleSupportItemClick}
         onTextChange={() => modified()}
         onKeyAction={handleKeyAction}

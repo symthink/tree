@@ -32,7 +32,6 @@ interface DocAction {
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
-  canEdit?: boolean;
   canGoBack?: boolean;
   onBackComplete?: () => void;
   onTreeEvent?: (event: SymthinkTreeEventAction) => void;
@@ -41,7 +40,6 @@ interface SymthinkTreeProps {
 
 export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
-  canEdit = false,
   canGoBack = false,
   onBackComplete,
   onTreeEvent,
@@ -89,7 +87,6 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
     <AnimationProvider>
       <NavigationProvider initialItem={doc}>
         <CardDeckNavigator 
-          canEdit={canEdit} 
           canGoBack={canGoBack}
           onBackComplete={onBackComplete}
         />
@@ -99,8 +96,7 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
 };
 
 
-const CardDeckNavigator: React.FC<{ canEdit?: boolean; canGoBack?: boolean; onBackComplete?: () => void }> = ({
-  canEdit = false,
+const CardDeckNavigator: React.FC<{ canGoBack?: boolean; onBackComplete?: () => void }> = ({
   canGoBack = false,
   onBackComplete,
 }) => {
@@ -117,7 +113,6 @@ const CardDeckNavigator: React.FC<{ canEdit?: boolean; canGoBack?: boolean; onBa
   const [showSharedElement, setShowSharedElement] = useState(false);
   const [showSharedElementBack, setShowSharedElementBack] = useState(false);
   const previousItemRef = useRef<any>(null);
-  const cardTransitionRef = useRef<() => void>();
 
   const { createAnimationValues, animateCardTransition, animateBackTransition, debugState, getDebugStyle } = useCardAnimation(width, {
     onAnimationStart: () => {

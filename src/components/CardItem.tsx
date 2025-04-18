@@ -11,7 +11,6 @@ import { Icon } from './Icon';
 
 interface CardItemProps {
   item: any; // Replace with proper type when migrating core classes
-  canEdit?: boolean;
   parentDoc: any; // Replace with proper type
   sourceNumbers?: number[];
   onItemClick?: (item: any, event: any) => void;

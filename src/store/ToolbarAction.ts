@@ -18,6 +18,7 @@ export const ToolbarAction = {
   MOVEBAR: 'moveBar',
   NAVTO: 'navTo',
   LAUNCH: 'launch',
+  EDIT_CARD: 'editCard',
 } as const;
 
 export type ToolbarActionType = typeof ToolbarAction[keyof typeof ToolbarAction];
