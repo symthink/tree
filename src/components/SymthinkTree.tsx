@@ -16,15 +16,6 @@ import { useAnimationStore } from '../store/AnimationStore';
 import { SymthinkTreeEventAction } from '../store/SymthinkTreeEvent';
 import { ClientAppEventType } from '../store/ClientAppEvent';
 
-interface SymthinkTreeProps {
-  initialData: ISymthinkDocument;
-  subscribe?: (action: SymthinkTreeEventAction) => void;
-  notify?: (action: ClientAppEventType) => void;
-  // canEdit?: boolean;
-  // canGoBack?: boolean;
-  // onBackComplete?: () => void;
-}
-
 interface ItemAction {
   action: string;
   value: SymthinkDocument;
@@ -37,8 +28,19 @@ interface DocAction {
   value: SymthinkDocument;
 }
 
+interface SymthinkTreeProps {
+  initialData: ISymthinkDocument;
+  subscribe?: (action: SymthinkTreeEventAction) => void;
+  notify?: (action: ClientAppEventType) => void;
+  canEdit?: boolean;
+  canGoBack?: boolean;
+  onBackComplete?: () => void;
+}
+
 export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
+  subscribe,
+  notify,
   canEdit = false,
   canGoBack = false,
   onBackComplete,
