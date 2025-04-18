@@ -139,12 +139,6 @@ const App = () => {
 
           <SymthinkTree
             initialData={data as unknown as ISymthinkDocument}
-            canEdit={canEdit}
-            canGoBack={canGoBack}
-            onBackComplete={() => {
-              console.log('Back complete');
-              setCanGoBack(false);
-            }}
             onTreeEvent={handleTreeEvent}
           />
         </div>

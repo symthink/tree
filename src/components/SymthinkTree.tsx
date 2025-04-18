@@ -39,9 +39,7 @@ interface SymthinkTreeProps {
 
 export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
-  onBackComplete,
   onTreeEvent,
-  onClientAction,
 }) => {
   const [doc] = useState<SymthinkDocument>(() => {
     const std = new SymthinkDocument(initialData.id);
@@ -53,20 +51,6 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   const { setAction } = useToolbarAction();
   const notifySymthinkTree = useSymthinkTreeEvent(state => state.notify);
   const subscribe = useSymthinkTreeEvent(state => state.subscribe);
-
-  // Handle incoming client actions
-  useEffect(() => {
-    if (onClientAction) {
-      const unsubscribe = useToolbarAction.subscribe(
-        (state) => {
-          if (state.currentAction) {
-            onClientAction(state.currentAction);
-          }
-        }
-      );
-      return () => unsubscribe();
-    }
-  }, [onClientAction]);
 
   // Handle outgoing tree events
   useEffect(() => {
@@ -86,7 +70,6 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
     <AnimationProvider>
       <NavigationProvider initialItem={doc}>
         <CardDeckNavigator 
-          onBackComplete={onBackComplete}
         />
       </NavigationProvider>
     </AnimationProvider>
@@ -94,9 +77,7 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
 };
 
 
-const CardDeckNavigator: React.FC<{ onBackComplete?: () => void }> = ({
-  onBackComplete,
-}) => {
+const CardDeckNavigator: React.FC = () => {
   const { colors } = useTheme();
   const { width } = Dimensions.get('window');
   const { navigationStack: contextStack, currentItem, pushItem, popItem } = useNavigation();
