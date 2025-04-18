@@ -188,6 +188,12 @@ const CardDeckNavigator: React.FC = () => {
 
   // Memoize the handleItemAction callback
   const handleItemAction = useCallback(async (action: ItemAction) => {
+    // Check if editing is enabled
+    const isEditing = useUIState.getState().isEditing;
+    if (isEditing) {
+      return; // Prevent navigation while editing
+    }
+
     if (action.action === 'support-clicked' && animationState.state !== 'ANIMATING') {
       const supportItem = action.value;
       
@@ -242,6 +248,12 @@ const CardDeckNavigator: React.FC = () => {
 
   // Memoize the navigateBack callback
   const navigateBack = useCallback(() => {
+    // Check if editing is enabled
+    const isEditing = useUIState.getState().isEditing;
+    if (isEditing) {
+      return; // Prevent back navigation while editing
+    }
+
     if (contextStack.length <= 1 || animationState.state !== 'IDLE') {
       console.warn('Back navigation blocked:', {
         reason: contextStack.length <= 1 ? 'stack too small' : `animation state is ${animationState.state}`

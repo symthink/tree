@@ -197,7 +197,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   }
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       ref={itemRef}
       style={[
         styles.container,
@@ -205,9 +205,6 @@ export const SupportItem: React.FC<SupportItemProps> = ({
       onPress={handleClick}
       {...hoverProps}
     >
-      <View style={[globalStyles.listItemIconContainer, { justifyContent: 'flex-start' }]}>
-        {renderBullet()}
-      </View>
 
       {isEditing ? (
         <TextEditor
@@ -218,8 +215,11 @@ export const SupportItem: React.FC<SupportItemProps> = ({
           onTextChange={handleTextChange}
           onKeyAction={handleKeyAction}
         />
-      ) : (
-        <View style={{ flex: 1 }}>
+      ) : [
+        <View key="bullet" style={[globalStyles.listItemIconContainer, { justifyContent: 'flex-start' }]}>
+          {renderBullet()}
+        </View>,
+        <View key="text" style={{ flex: 1 }}>
           <Text style={item.text ? styles.text : styles.placeholder}>
             {renderItemText() || "Add supporting idea..."}
           </Text>
@@ -230,7 +230,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
             </View>
           )}
         </View>
-      )}
+      ]}
     </TouchableOpacity>
   );
 }; 

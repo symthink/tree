@@ -6,7 +6,7 @@ import { Symthink } from '../core/symthink.class';
 interface TextEditorProps {
   item: Symthink;
   placeholder?: string;
-  height?: number;
+  minHeight?: number;
   isTopItem?: boolean;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
@@ -15,7 +15,7 @@ interface TextEditorProps {
 export const TextEditor: React.FC<TextEditorProps> = ({
   item,
   placeholder = '',
-  height = 50,
+  minHeight = 50,
   isTopItem = false,
   onTextChange,
   onKeyAction,
@@ -24,6 +24,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const textInputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
   const [initialized, setInitialized] = useState(false);
+  const [height, setHeight] = useState(minHeight);
 
   // Initialize with the correct text
   useEffect(() => {
@@ -52,8 +53,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
   const handleTextChange = (newText: string) => {
     setText(newText);
-    item.text = newText;
-    onTextChange?.(item, true);
+    // item.text = newText;
+    // onTextChange?.(item, true);
   };
 
   const handleBlur = () => {
@@ -79,6 +80,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     onTextChange?.(item, true);
   };
 
+  const handleContentSizeChange = (event: any) => {
+    const newHeight = Math.max(minHeight, event.nativeEvent.contentSize.height);
+    setHeight(newHeight);
+  };
+
   const styles = StyleSheet.create({
     input: {
       height: height,
@@ -90,6 +96,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       padding: 8,
       fontSize: 16,
       textAlignVertical: 'top',
+      overflow: 'hidden',
     },
   });
 
@@ -110,8 +117,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       ref={textInputRef}
       style={styles.input}
       value={text}
-      // onChangeText={handleTextChange}
+      onChangeText={handleTextChange}
       // onBlur={handleBlur}
+      onContentSizeChange={handleContentSizeChange}
       placeholder={placeholder}
       multiline={true}
       autoCapitalize="sentences"
