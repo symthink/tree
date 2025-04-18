@@ -13,10 +13,10 @@ import { AnimationProvider } from '../core/AnimationContext';
 import { globalStor } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
 import { useAnimationStore } from '../store/AnimationStore';
-import { SymthinkTreeEvent, SymthinkTreeEventAction } from '../store/SymthinkTreeEvent';
-import { useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
-import { useToolbarAction, ToolbarActionType } from '../store/ToolbarAction';
+import { SymthinkTreeEvent, SymthinkTreeEventAction, useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
+import { useToolbarAction, ToolbarAction, ToolbarActionType } from '../store/ToolbarAction';
 import { ClientAppEventType } from '../store/ClientAppEvent';
+import { useUIState } from '../store/UIStateStore';
 
 interface ItemAction {
   action: string;
@@ -65,6 +65,26 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
       return () => unsubscribe();
     }
   }, [onTreeEvent]);
+
+  // Subscribe to ToolbarAction events
+  useToolbarAction.subscribe((state) => {
+    console.log('ToolbarAction', state);
+    if (state.currentAction === ToolbarAction.EDIT_CARD) {
+      useUIState.getState().setEditing(true);
+    }
+  });
+
+  // Watch for SymthinkTreeEvent changes
+  const currentEvent = useSymthinkTreeEvent(state => state.currentEvent);
+  React.useEffect(() => {
+    console.log('currentEvent', currentEvent);
+    // if (currentEvent?.action === SymthinkTreeEvent.EDITITEM) {
+    //   useUIState.getState().setEditing(true, currentEvent.value?.id);
+    // } else if (currentEvent?.action === SymthinkTreeEvent.MODIFIED) {
+    //   // Handle any modifications that might affect UI state
+    //   console.log('Tree modified:', currentEvent);
+    // }
+  }, [currentEvent]);
 
   return (
     <AnimationProvider>

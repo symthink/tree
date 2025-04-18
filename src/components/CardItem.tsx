@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
@@ -10,6 +10,7 @@ import { ItemOptions } from './ItemOptions';
 import { TextEditor } from './TextEditor';
 import { globalStyles } from '../theme/globalStyles';
 import { Icon } from './Icon';
+import { useUIState } from '../store/UIStateStore';
 
 interface CardItemProps {
   item: any; // Replace with proper type when migrating core classes
@@ -40,10 +41,14 @@ export const CardItem: React.FC<CardItemProps> = ({
   const [change, setChange] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const notifySymthinkTree = useSymthinkTreeEvent(state => state.notify);
-
+  const setCurrentCardId = useUIState(state => state.setCurrentCardId);
   const isVoting = parentDoc?.state$?.getValue() === 'Voting';
-  const isEditable = !!(item.selected);
   const isViewing = parentDoc?.state$?.getValue() === 'Viewing';
+  const isEditing = useUIState(state => state.isEditing);
+
+  useEffect(() => {
+    setCurrentCardId(item.id);
+  }, [item]);
 
   const renderLabel = (txt?: string) => {
     if (!txt) return null;
@@ -175,7 +180,7 @@ export const CardItem: React.FC<CardItemProps> = ({
       onPress={handleItemClick}
       {...hoverProps}
     >
-      {isEditable ? (
+      {isEditing ? (
         <View style={styles.editorContainer}>
           <TextEditor
             item={item}
