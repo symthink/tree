@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
+import { SymthinkTreeEvent } from '../store/SymthinkTreeEvent';
 
 // Import the components
 import { ExpandButton } from './ExpandButton';
@@ -37,6 +39,7 @@ export const CardItem: React.FC<CardItemProps> = ({
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const notifySymthinkTree = useSymthinkTreeEvent(state => state.notify);
 
   const isVoting = parentDoc?.state$?.getValue() === 'Voting';
   const isEditable = !!(item.selected);
@@ -67,6 +70,13 @@ export const CardItem: React.FC<CardItemProps> = ({
   };
 
   const handleItemClick = (e: any) => {
+    if (showBackButton && !item.isRoot) {
+      notifySymthinkTree({
+        action: SymthinkTreeEvent.GO_BACK,
+        value: item
+      });
+      return;
+    }
     
     item.select$.next(true);
     onItemClick?.(item, e);

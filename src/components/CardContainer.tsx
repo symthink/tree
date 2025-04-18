@@ -11,13 +11,11 @@ import { useAnimationStore } from '../store/AnimationStore';
 interface CardContainerProps {
   data: Symthink;
   onItemAction?: (action: { action: string; value: any; domrect?: DOMRect; pointerEvent?: any }) => void;
-  onDocAction?: (action: { action: string; value: any }) => void;
 }
-// need to replace item and doc actions with the new outgoing action store
+
 export const CardContainer: React.FC<CardContainerProps> = ({
   data,
   onItemAction,
-  onDocAction,
 }) => {
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
@@ -136,7 +134,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
 
   const modified = (percDiff?: number) => {
     setChange(prev => !prev);
-    onDocAction?.({ action: 'modified', value: percDiff || null });
   };
 
   // Event Handlers for child components
@@ -148,12 +145,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     }
     
     item.select$.next(true);
-    if (!data.isRoot) {
-      onDocAction?.({
-        action: 'go-back',
-        value: item,
-      });
-    }
   };
 
   const handleMainItemOptionsClick = (item: any, event: any) => {

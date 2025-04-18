@@ -60,7 +60,7 @@ const App = () => {
           marginBottom: '20px'
         }}>
           <button
-            onClick={() => setCanEdit(!canEdit)}
+            onClick={() => setAction(ToolbarAction.EDIT_CARD)}
             style={{
               padding: '8px 16px',
               fontSize: '14px',
@@ -72,7 +72,7 @@ const App = () => {
               transition: 'background-color 0.2s'
             }}
           >
-            {canEdit ? 'Disable Editing' : 'Enable Editing'}
+            Edit Card
           </button>
 
           <button

@@ -20,6 +20,7 @@ export const SymthinkTreeEvent = {
   TAFOCUSED: 'taFocused',
   STATE: 'state',
   SPARKLES: 'sparkles',
+  GO_BACK: 'go-back',
 } as const;
 
 export type SymthinkTreeEventType = typeof SymthinkTreeEvent[keyof typeof SymthinkTreeEvent];

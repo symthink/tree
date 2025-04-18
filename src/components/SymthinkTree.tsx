@@ -13,7 +13,7 @@ import { AnimationProvider } from '../core/AnimationContext';
 import { globalStor } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
 import { useAnimationStore } from '../store/AnimationStore';
-import { SymthinkTreeEventAction } from '../store/SymthinkTreeEvent';
+import { SymthinkTreeEvent, SymthinkTreeEventAction } from '../store/SymthinkTreeEvent';
 import { useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
 import { useToolbarAction, ToolbarActionType } from '../store/ToolbarAction';
 import { ClientAppEventType } from '../store/ClientAppEvent';
@@ -52,6 +52,7 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
 
   const { setAction } = useToolbarAction();
   const notifySymthinkTree = useSymthinkTreeEvent(state => state.notify);
+  const subscribe = useSymthinkTreeEvent(state => state.subscribe);
 
   // Handle incoming client actions
   useEffect(() => {
@@ -101,6 +102,7 @@ const CardDeckNavigator: React.FC<{ onBackComplete?: () => void }> = ({
   const { navigationStack: contextStack, currentItem, pushItem, popItem } = useNavigation();
   const { state: animationState, queueAnimation, startAnimation, completeAnimation, cancelAnimation } = useAnimation();
   const notifySharedElFwdAnimDone = useAnimationStore((state: { notifySharedElFwdAnimDone: () => void }) => state.notifySharedElFwdAnimDone);
+  const subscribe = useSymthinkTreeEvent(state => state.subscribe);
   
   // Replace useRef with useState for animated items
   const [animatedItems, setAnimatedItems] = useState<Map<string, NavigationItem>>(new Map());
@@ -325,18 +327,15 @@ const CardDeckNavigator: React.FC<{ onBackComplete?: () => void }> = ({
 
   }, [contextStack.length, animationState.state, startAnimation, popItem, animatedItems, animateBackTransition, cancelAnimation, completeAnimation]);
 
-  // Add effect to handle back navigation
+  // Handle back navigation events
   useEffect(() => {
-    // Remove the automatic back navigation effect since we want it to only trigger
-    // when the back button is explicitly clicked
-  }, []);
-
-  const handleDocAction = useCallback((action: DocAction) => {
-    if (action.action === 'go-back' && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
-      console.log('handleDocAction', action);
-      navigateBack();
-    }
-  }, [navigateBack, animationState.state, contextStack.length]);
+    const unsubscribe = subscribe((event) => {
+      if (event.action === SymthinkTreeEvent.GO_BACK && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
+        navigateBack();
+      }
+    });
+    return () => unsubscribe();
+  }, [subscribe, animationState.state, contextStack.length, navigateBack]);
 
   // Memoize the render function
   const renderCards = useCallback(() => {
@@ -370,12 +369,11 @@ const CardDeckNavigator: React.FC<{ onBackComplete?: () => void }> = ({
           <CardContainer
             data={item.data}
             onItemAction={handleItemAction}
-            onDocAction={handleDocAction}
           />
         </Animated.View>
       );
     });
-  }, [visibleItems, debugState, getDebugStyle, colors.background, handleItemAction, handleDocAction]);
+  }, [visibleItems, debugState, getDebugStyle, colors.background, handleItemAction]);
 
   const styles = StyleSheet.create({
     container: {
