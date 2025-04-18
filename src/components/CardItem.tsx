@@ -25,7 +25,6 @@ interface CardItemProps {
 
 export const CardItem: React.FC<CardItemProps> = ({
   item,
-  canEdit = false,
   parentDoc,
   sourceNumbers = [],
   onItemClick,
@@ -41,7 +40,7 @@ export const CardItem: React.FC<CardItemProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const isVoting = parentDoc?.state$?.getValue() === 'Voting';
-  const isEditable = !!(item.selected && canEdit);
+  const isEditable = !!(item.selected);
   const isViewing = parentDoc?.state$?.getValue() === 'Viewing';
 
   const renderLabel = (txt?: string) => {
@@ -162,7 +161,7 @@ export const CardItem: React.FC<CardItemProps> = ({
     <TouchableOpacity
       style={[
         styles.container, 
-        isHovered && canEdit && !item.selected ? styles.hovered : null
+        isHovered && !item.selected ? styles.hovered : null
       ]}
       onPress={handleItemClick}
       {...hoverProps}

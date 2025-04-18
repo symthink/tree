@@ -14,6 +14,8 @@ import { globalStor } from '../core/simpleGlobalStore';
 import { SharedElementBack } from './SharedElementBack';
 import { useAnimationStore } from '../store/AnimationStore';
 import { SymthinkTreeEventAction } from '../store/SymthinkTreeEvent';
+import { useSymthinkTreeEvent } from '../store/SymthinkTreeEvent';
+import { useToolbarAction, ToolbarActionType } from '../store/ToolbarAction';
 import { ClientAppEventType } from '../store/ClientAppEvent';
 
 interface ItemAction {
@@ -30,20 +32,20 @@ interface DocAction {
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
-  subscribe?: (action: SymthinkTreeEventAction) => void;
-  notify?: (action: ClientAppEventType) => void;
   canEdit?: boolean;
   canGoBack?: boolean;
   onBackComplete?: () => void;
+  onTreeEvent?: (event: SymthinkTreeEventAction) => void;
+  onClientAction?: (action: ToolbarActionType) => void;
 }
 
 export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
-  subscribe,
-  notify,
   canEdit = false,
   canGoBack = false,
   onBackComplete,
+  onTreeEvent,
+  onClientAction,
 }) => {
   const [doc] = useState<SymthinkDocument>(() => {
     const std = new SymthinkDocument(initialData.id);
@@ -51,6 +53,37 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
     std.state$.next(StateEnum.Viewing);
     return std;
   });    
+
+  const { setAction } = useToolbarAction();
+  const notifySymthinkTree = useSymthinkTreeEvent(state => state.notify);
+
+  // Handle incoming client actions
+  useEffect(() => {
+    if (onClientAction) {
+      const unsubscribe = useToolbarAction.subscribe(
+        (state) => {
+          if (state.currentAction) {
+            onClientAction(state.currentAction);
+          }
+        }
+      );
+      return () => unsubscribe();
+    }
+  }, [onClientAction]);
+
+  // Handle outgoing tree events
+  useEffect(() => {
+    if (onTreeEvent) {
+      const unsubscribe = useSymthinkTreeEvent.subscribe(
+        (state) => {
+          if (state.currentEvent) {
+            onTreeEvent(state.currentEvent);
+          }
+        }
+      );
+      return () => unsubscribe();
+    }
+  }, [onTreeEvent]);
 
   return (
     <AnimationProvider>
@@ -65,13 +98,8 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   );
 };
 
-interface CardDeckNavigatorProps {
-  canEdit?: boolean;
-  canGoBack?: boolean;
-  onBackComplete?: () => void;
-}
 
-const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
+const CardDeckNavigator: React.FC<{ canEdit?: boolean; canGoBack?: boolean; onBackComplete?: () => void }> = ({
   canEdit = false,
   canGoBack = false,
   onBackComplete,
@@ -302,21 +330,24 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
       cancelAnimation();
       startAnimation('IDLE');
       completeAnimation();
-      
-      onBackComplete?.();
     });
 
-  }, [contextStack.length, animationState.state, startAnimation, popItem, animatedItems, animateBackTransition, cancelAnimation, completeAnimation, onBackComplete]);
+  }, [contextStack.length, animationState.state, startAnimation, popItem, animatedItems, animateBackTransition, cancelAnimation, completeAnimation]);
 
   // Add effect to handle canGoBack prop
   useEffect(() => {
     if (canGoBack && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
-      navigateBack();
+      // Only navigate back if we're not in the middle of an animation
+      // and the back button was explicitly clicked
+      if (animationState.state === 'IDLE') {
+        navigateBack();
+      }
     }
   }, [canGoBack, animationState.state, navigateBack, contextStack.length]);
 
   const handleDocAction = useCallback((action: DocAction) => {
     if (action.action === 'go-back' && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
+      console.log('handleDocAction', action);
       navigateBack();
     }
   }, [navigateBack, animationState.state, contextStack.length]);
@@ -352,14 +383,13 @@ const CardDeckNavigator: React.FC<CardDeckNavigatorProps> = ({
         >
           <CardContainer
             data={item.data}
-            canEdit={canEdit}
             onItemAction={handleItemAction}
             onDocAction={handleDocAction}
           />
         </Animated.View>
       );
     });
-  }, [visibleItems, debugState, getDebugStyle, colors.background, canEdit, handleItemAction, handleDocAction]);
+  }, [visibleItems, debugState, getDebugStyle, colors.background, handleItemAction, handleDocAction]);
 
   const styles = StyleSheet.create({
     container: {

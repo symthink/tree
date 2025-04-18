@@ -4,7 +4,7 @@ import './setupReactNative';
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider } from '../../src/theme/ThemeContext';
-import { SymthinkTree, loadWebFonts, useSymthinkTreeEvent, useClientAppEvent, SymthinkTreeEvent } from '../../src';
+import { SymthinkTree, loadWebFonts, useToolbarAction, ToolbarAction } from '../../src';
 import { ISymthinkDocument } from '../../src/core/symthink.class';
 import { Subject } from 'rxjs/internal/Subject';
 import data from './mock-data.json';
@@ -21,13 +21,6 @@ const UserAgentInfo = () => {
   );
 };
 
-interface ItemAction {
-  action: string;
-  value: any;
-  domrect?: DOMRect;
-  pointerEvent?: any;
-}
-
 const App = () => {
   console.log('App rendering');
 
@@ -35,115 +28,135 @@ const App = () => {
   const [canEdit, setCanEdit] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
   const notifyRef = useRef(new Subject());
-  const symthinkTreeSubscribe = useSymthinkTreeEvent(state => state.subscribe);
-
-  useEffect(() => {
-    const subscription = symthinkTreeSubscribe(handleSymthinkTreeAction);
-    // Cleanup function to complete and unsubscribe from the Subject
-    return () => {
-      notifyRef.current.complete();
-      return subscription();
-    };
-  }, []);
-
-  const handleSymthinkTreeAction = (action: SymthinkTreeEventAction) => {
-      if (action.action === SymthinkTreeEvent.OPEN) {
-      window.open(action.value, '_blank');
+  const setAction = useToolbarAction(state => state.setAction);
+  
+  const handleTreeEvent = (event: SymthinkTreeEventAction) => {
+    console.log('Tree event:', event);
+    if (event.action === 'open') {
+      window.open(event.value, '_blank');
     }
   };
 
-  const handleItemAction = (action: ItemAction) => {
-    console.log('Item action:', action);
-    if (action.action === 'support-clicked') {
-      setSelectedItem(action.value);
-    }
+  const handleReorderClick = () => {
+    setAction(ToolbarAction.REORDER);
   };
 
-  const handleDocAction = (action: { action: string; value: any }) => {
-    console.log('Doc action:', action);
-    if (action.action === 'go-back') {
-      setSelectedItem(null);
-    }
+  const handleListTypeClick = () => {
+    setAction(ToolbarAction.LISTTYPE, 'numbered');
   };
 
   return (
     <ThemeProvider>
+      <div style={{
+        maxWidth: '900px',
+        padding: '0',
+        margin: '0 auto',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+      }}>
         <div style={{
-          maxWidth: '900px',
-          padding: '0',
-          margin: '0 auto',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '10px',
+          marginBottom: '20px'
         }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: '20px'
-          }}>
-            <button
-              onClick={() => setCanEdit(!canEdit)}
-              style={{
-                padding: '8px 16px',
-                fontSize: '14px',
-                backgroundColor: canEdit ? '#dc3545' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-            >
-              {canEdit ? 'Disable Editing' : 'Enable Editing'}
-            </button>
-          </div>
-          <hr />
-          <div id="demo-container" style={{
-            width: '100%',
-            padding: '0',
-            margin: '0',
-          }}>
-            {(canEdit && canGoBack) && (
-              <div style={{
-                padding: '16px'
-              }}>
-                <button
-                  onClick={() => setCanGoBack(true)}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '14px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  ← Back
-                </button>
-              </div>
-            )}
-            
-            <SymthinkTree 
-              initialData={data as unknown as ISymthinkDocument}
-              canEdit={canEdit}
-              canGoBack={canGoBack}
-              onBackComplete={() => {
-                console.log('Back complete');
-                setCanGoBack(false);
-              }}
-            />
-          </div>
+          <button
+            onClick={() => setCanEdit(!canEdit)}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              backgroundColor: canEdit ? '#dc3545' : '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            {canEdit ? 'Disable Editing' : 'Enable Editing'}
+          </button>
 
-          <footer style={{
-            marginTop: '30px',
-            textAlign: 'center',
-            color: '#888',
-            fontSize: '14px'
-          }}>
-          </footer>
+          <button
+            onClick={handleReorderClick}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            Reorder Items
+          </button>
+
+          <button
+            onClick={handleListTypeClick}
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            List Type
+          </button>
         </div>
+        <hr />
+        <div id="demo-container" style={{
+          width: '100%',
+          padding: '0',
+          margin: '0',
+        }}>
+          {(canEdit && canGoBack) && (
+            <div style={{
+              padding: '16px'
+            }}>
+              <button
+                onClick={() => setCanGoBack(true)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '14px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                ← Back
+              </button>
+            </div>
+          )}
+
+          <SymthinkTree
+            initialData={data as unknown as ISymthinkDocument}
+            canEdit={canEdit}
+            canGoBack={canGoBack}
+            onBackComplete={() => {
+              console.log('Back complete');
+              setCanGoBack(false);
+            }}
+            onTreeEvent={handleTreeEvent}
+          />
+        </div>
+
+        <footer style={{
+          marginTop: '30px',
+          textAlign: 'center',
+          color: '#888',
+          fontSize: '14px'
+        }}>
+        </footer>
+      </div>
     </ThemeProvider>
   );
 };

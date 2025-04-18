@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { CardItem } from './CardItem';
 import { SupportList } from './SupportList';
@@ -24,7 +24,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   const { colors } = useTheme();
   const [change, setChange] = useState(false);
   const subscribe = useSymthinkTreeEvent(state => state.subscribe);
-  const subscribeSharedElFwdAnimDone = useAnimationStore((state: { subscribeSharedElFwdAnimDone: (callback: () => void) => () => void }) => state.subscribeSharedElFwdAnimDone);
+  const subscribeToAnimationComplete = useAnimationStore(state => state.subscribeSharedElFwdAnimDone);
   
   const [sourceList, setSourceList] = useState<{ id: string; index: number; src: any }[]>([]);
   const [parentDoc, setParentDoc] = useState<any>(null);
@@ -38,11 +38,11 @@ export const CardContainer: React.FC<CardContainerProps> = ({
   }, [subscribe]);
 
   useEffect(() => {
-    const unsubscribe = subscribeSharedElFwdAnimDone(() => setShowTopItem(true));
+    const unsubscribe = subscribeToAnimationComplete(() => setShowTopItem(true));
     return () => {
       unsubscribe();
     };
-  }, [subscribeSharedElFwdAnimDone]);
+  }, [subscribeToAnimationComplete]);
 
   useEffect(() => {
     if (!data) return;
@@ -129,8 +129,8 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         setChange(prev => !prev);
         break;
       case SymthinkTreeEvent.PAGECHANGE:
-      // TODO: handle page change
-        break;
+      // 
+      break;
       default:
         break;
     }
@@ -247,7 +247,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     return (
       <CardItem
         item={data}
-        canEdit={canEdit}
+        // canEdit={canEdit}
         parentDoc={parentDoc}
         sourceNumbers={getSourceNumbers(data.id)}
         onItemClick={handleMainItemClick}
@@ -267,7 +267,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
     return (
       <SupportList
         items={data.support || []}
-        canEdit={canEdit}
+        // canEdit={canEdit}
         onItemClick={handleSupportItemClick}
         onTextChange={() => modified()}
         onKeyAction={handleKeyAction}

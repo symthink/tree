@@ -33,6 +33,7 @@ export interface SymthinkTreeEventAction {
 
 interface SymthinkTreeEventInterface {
   subscribers: Set<(message: SymthinkTreeEventAction) => void>;
+  currentEvent: SymthinkTreeEventAction | null;
   notify: (message: SymthinkTreeEventAction) => void;
   subscribe: (callback: (message: SymthinkTreeEventAction) => void) => () => void;
 }
@@ -42,8 +43,10 @@ interface SymthinkTreeEventInterface {
  */
 export const useSymthinkTreeEvent = create<SymthinkTreeEventInterface>((set, get) => ({
   subscribers: new Set<(message: SymthinkTreeEventAction) => void>(),
+  currentEvent: null,
   
   notify: (msgAction: SymthinkTreeEventAction) => {
+    set({ currentEvent: msgAction });
     get().subscribers.forEach(callback => callback(msgAction));
   },
 
