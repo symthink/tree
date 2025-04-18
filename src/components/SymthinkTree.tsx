@@ -32,7 +32,6 @@ interface DocAction {
 
 interface SymthinkTreeProps {
   initialData: ISymthinkDocument;
-  canGoBack?: boolean;
   onBackComplete?: () => void;
   onTreeEvent?: (event: SymthinkTreeEventAction) => void;
   onClientAction?: (action: ToolbarActionType) => void;
@@ -40,7 +39,6 @@ interface SymthinkTreeProps {
 
 export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
   initialData,
-  canGoBack = false,
   onBackComplete,
   onTreeEvent,
   onClientAction,
@@ -87,7 +85,6 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
     <AnimationProvider>
       <NavigationProvider initialItem={doc}>
         <CardDeckNavigator 
-          canGoBack={canGoBack}
           onBackComplete={onBackComplete}
         />
       </NavigationProvider>
@@ -96,8 +93,7 @@ export const SymthinkTree: React.FC<SymthinkTreeProps> = ({
 };
 
 
-const CardDeckNavigator: React.FC<{ canGoBack?: boolean; onBackComplete?: () => void }> = ({
-  canGoBack = false,
+const CardDeckNavigator: React.FC<{ onBackComplete?: () => void }> = ({
   onBackComplete,
 }) => {
   const { colors } = useTheme();
@@ -329,16 +325,11 @@ const CardDeckNavigator: React.FC<{ canGoBack?: boolean; onBackComplete?: () => 
 
   }, [contextStack.length, animationState.state, startAnimation, popItem, animatedItems, animateBackTransition, cancelAnimation, completeAnimation]);
 
-  // Add effect to handle canGoBack prop
+  // Add effect to handle back navigation
   useEffect(() => {
-    if (canGoBack && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
-      // Only navigate back if we're not in the middle of an animation
-      // and the back button was explicitly clicked
-      if (animationState.state === 'IDLE') {
-        navigateBack();
-      }
-    }
-  }, [canGoBack, animationState.state, navigateBack, contextStack.length]);
+    // Remove the automatic back navigation effect since we want it to only trigger
+    // when the back button is explicitly clicked
+  }, []);
 
   const handleDocAction = useCallback((action: DocAction) => {
     if (action.action === 'go-back' && animationState.state !== 'ANIMATING' && contextStack.length > 1) {
