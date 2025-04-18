@@ -9,7 +9,6 @@ import { useSymthinkTreeEvent, SymthinkTreeEvent } from '../store/SymthinkTreeEv
 
 interface SupportListProps {
   items: Symthink[];
-  canEdit?: boolean;
   onItemClick?: (item: any, event: any, domrect?: DOMRect) => void;
   onTextChange?: (item: any, isModified: boolean) => void;
   onKeyAction?: (key: string, type?: string) => void;
@@ -31,7 +30,6 @@ const DraggableSupportItem: React.FC<{
 
 export const SupportList: React.FC<SupportListProps> = ({
   items,
-  canEdit = false,
   onItemClick,
   onTextChange,
   onKeyAction,
@@ -85,7 +83,6 @@ export const SupportList: React.FC<SupportListProps> = ({
     return (
       <SupportItem 
         item={item}
-        canEdit={canEdit}
         onItemClick={onItemClick}
         onTextChange={onTextChange}
         onKeyAction={onKeyAction}

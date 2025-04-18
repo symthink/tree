@@ -190,9 +190,6 @@ export const CardItem: React.FC<CardItemProps> = ({
             onTextChange={handleTextChange}
             onKeyAction={handleKeyAction}
           />
-          <View style={styles.buttonsContainer}>
-            <ExpandButton onExpandClick={handleExpandClick} />
-          </View>
         </View>
       ) : (
         <>

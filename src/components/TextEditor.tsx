@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { TextInput, StyleSheet, Platform } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { Symthink } from '../core/symthink.class';
 
 interface TextEditorProps {
-  item: any; // Replace with proper type when migrating core classes
+  item: Symthink;
   placeholder?: string;
   height?: number;
   isTopItem?: boolean;
@@ -22,22 +23,24 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const { colors } = useTheme();
   const textInputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
   // Initialize with the correct text
   useEffect(() => {
-    setText(isTopItem ? item.getCurrentItemText?.(true) || '' : item.getSupportItemText?.() || '');
-  }, [item, isTopItem]);
+    if (!initialized) {
+      const txt = isTopItem ? item.getCurrentItemText?.(true) || '' : item.getSupportItemText?.() || '';
+      console.log('Initializing text:', txt);
+      setText(txt);
+      setInitialized(true);
+      focus();
+    }
+  }, [initialized]);
 
   const focus = () => {
     if (textInputRef.current) {
       textInputRef.current.focus();
     }
   };
-
-  useEffect(() => {
-    // Auto-focus the input when component mounts
-    focus();
-  }, []);
 
   const onKeyUp = (evt: any) => {
     if (evt.key === 'Enter') {
@@ -50,17 +53,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const handleTextChange = (newText: string) => {
     setText(newText);
     item.text = newText;
-    
-    // This is a simplification - in a real implementation we would need to 
-    // handle the sympunk regex and card rules logic from the original component
     onTextChange?.(item, true);
   };
 
   const handleBlur = () => {
     let newVal = text.trim();
-    
-    // This is a placeholder for the sympunk and text processing logic
-    // In a real implementation, we would need to migrate the logic from the original component
     
     // Simple capitalization as an example
     if (newVal.length > 0) {
@@ -72,10 +69,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     // Handle label extraction (simplified)
     if (item.text?.indexOf(':') !== -1) {
       const [label, content] = item.text.split(':');
-      item.label = label ? label.trim() : null;
+      item.label = label ? label.trim() : undefined;
       item.text = (content || '').trim();
     } else {
-      item.label = null;
+      item.label = undefined;
     }
     
     setText(newVal);
@@ -86,7 +83,10 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     input: {
       height: height,
       color: colors.text,
-      borderWidth: 0,
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderRadius: 8,
+      width: '100%',
       padding: 8,
       fontSize: 16,
       textAlignVertical: 'top',
@@ -110,8 +110,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       ref={textInputRef}
       style={styles.input}
       value={text}
-      onChangeText={handleTextChange}
-      onBlur={handleBlur}
+      // onChangeText={handleTextChange}
+      // onBlur={handleBlur}
       placeholder={placeholder}
       multiline={true}
       autoCapitalize="sentences"

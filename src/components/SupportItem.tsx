@@ -5,6 +5,7 @@ import { TextEditor } from './TextEditor';
 import { globalStyles } from '../theme/globalStyles';
 import { Symthink } from '../core/symthink.class';
 import { Icon } from './Icon';
+import { useUIState } from '../store/UIStateStore';
 
 interface SupportItemProps {
   item: Symthink; // Replace with proper type
@@ -19,7 +20,6 @@ interface SupportItemProps {
 
 export const SupportItem: React.FC<SupportItemProps> = ({
   item,
-  canEdit = false,
   onItemClick,
   onTextChange,
   onKeyAction,
@@ -31,7 +31,8 @@ export const SupportItem: React.FC<SupportItemProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const itemRef = useRef<TouchableOpacity>(null);
 
-  const isEditable = !!(item.selected && canEdit);
+  const isEditing = useUIState(state => state.isEditing);
+
   const hasChildSupports = item.support && item.support.length > 0;
 
   const handleClick = (e: any) => {
@@ -208,7 +209,7 @@ export const SupportItem: React.FC<SupportItemProps> = ({
         {renderBullet()}
       </View>
 
-      {isEditable ? (
+      {isEditing ? (
         <TextEditor
           item={item}
           height={40}
